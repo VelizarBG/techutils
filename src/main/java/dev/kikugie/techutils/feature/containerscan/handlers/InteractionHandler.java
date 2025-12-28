@@ -1,8 +1,8 @@
 package dev.kikugie.techutils.feature.containerscan.handlers;
 
 import dev.kikugie.techutils.config.MiscConfigs;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.BlockPos;
 
 import java.util.ArrayDeque;
 import java.util.Iterator;

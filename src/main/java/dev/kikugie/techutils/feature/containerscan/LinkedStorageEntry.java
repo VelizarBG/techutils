@@ -2,9 +2,9 @@ package dev.kikugie.techutils.feature.containerscan;
 
 import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.malilib.util.data.Color4f;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -20,29 +20,29 @@ public class LinkedStorageEntry {
 	private static final Supplier<Color4f> EXTRA_COLOR = Configs.Colors.SCHEMATIC_OVERLAY_COLOR_EXTRA::getColor;
 	public final BlockPos pos;
 	@Nullable
-	private Inventory worldInventory;
+	private Container worldInventory;
 	@Nullable
-	private Inventory placementInventory;
+	private Container placementInventory;
 
-	public LinkedStorageEntry(BlockPos pos, @Nullable Inventory worldInventory, @Nullable Inventory placementInventory) {
+	public LinkedStorageEntry(BlockPos pos, @Nullable Container worldInventory, @Nullable Container placementInventory) {
 		this.pos = pos;
 		this.worldInventory = worldInventory;
 		this.placementInventory = placementInventory;
 	}
 
-	public Optional<Inventory> getWorldInventory() {
+	public Optional<Container> getWorldInventory() {
 		return Optional.ofNullable(this.worldInventory);
 	}
 
-	public void setWorldInventory(@Nullable Inventory inventory) {
+	public void setWorldInventory(@Nullable Container inventory) {
 		this.worldInventory = inventory;
 	}
 
-	public Optional<Inventory> getPlacementInventory() {
+	public Optional<Container> getPlacementInventory() {
 		return Optional.ofNullable(this.placementInventory);
 	}
 
-	public void setPlacementInventory(@Nullable Inventory inventory) {
+	public void setPlacementInventory(@Nullable Container inventory) {
 		this.placementInventory = inventory;
 	}
 
@@ -51,9 +51,9 @@ public class LinkedStorageEntry {
 			return Optional.empty();
 
 		int type = 0;
-		for (int i = 0; i < this.worldInventory.size(); i++) {
-			ItemStack world = this.worldInventory.getStack(i);
-			ItemStack schem = this.placementInventory.getStack(i);
+		for (int i = 0; i < this.worldInventory.getContainerSize(); i++) {
+			ItemStack world = this.worldInventory.getItem(i);
+			ItemStack schem = this.placementInventory.getItem(i);
 
 			if (world.isEmpty() && !schem.isEmpty())
 				type = Math.max(type, 1);

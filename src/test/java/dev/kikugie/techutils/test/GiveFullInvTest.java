@@ -1,20 +1,20 @@
 package dev.kikugie.techutils.test;
 
 import dev.kikugie.techutils.feature.GiveFullIInv;
-import net.minecraft.Bootstrap;
+import net.minecraft.server.Bootstrap;
 import net.minecraft.SharedConstants;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.ShulkerBoxBlock;
-import net.minecraft.block.entity.ChestBlockEntity;
-import net.minecraft.block.entity.ShulkerBoxBlockEntity;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.BundleContentsComponent;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ShulkerBoxBlock;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.BundleContents;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -27,8 +27,8 @@ import dev.kikugie.techutils.config.MiscConfigs;
 public class GiveFullInvTest {
     @BeforeAll
     public static void setup() {
-        SharedConstants.createGameVersion();
-        Bootstrap.initialize();
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
     }
 
     /**
@@ -266,59 +266,59 @@ public class GiveFullInvTest {
 
     private void boxOf(ItemStack stack, ItemStack box, @Nullable DyeColor color) {
         Assertions.assertEquals(color, getBoxColor(box.getItem()), "Shulker box color '%s' doesn't match expected '%s'".formatted(getBoxColor(box.getItem()), color));
-		Assertions.assertNotNull(box.get(DataComponentTypes.CONTAINER), "Shulker box has no container component");
+		Assertions.assertNotNull(box.get(DataComponents.CONTAINER), "Shulker box has no container component");
 
-		ShulkerBoxBlockEntity shulker = new ShulkerBoxBlockEntity(color, BlockPos.ORIGIN, ShulkerBoxBlock.get(color).getDefaultState());
-        shulker.readComponents(stack);
-        for (int i = 0; i < shulker.size(); i++) {
-            Assertions.assertTrue(ItemStack.areEqual(stack, shulker.getStack(i)), "Shulker box item '%s' doesn't match expected '%s'".formatted(shulker.getStack(i), stack));
+		ShulkerBoxBlockEntity shulker = new ShulkerBoxBlockEntity(color, BlockPos.ZERO, ShulkerBoxBlock.getBlockByColor(color).defaultBlockState());
+        shulker.applyComponentsFromItemStack(stack);
+        for (int i = 0; i < shulker.getContainerSize(); i++) {
+            Assertions.assertTrue(ItemStack.matches(stack, shulker.getItem(i)), "Shulker box item '%s' doesn't match expected '%s'".formatted(shulker.getItem(i), stack));
         }
     }
 
     private void chestOf(ItemStack stack, ItemStack chest) {
-		Assertions.assertNotNull(chest.get(DataComponentTypes.CONTAINER), "Chest has no container component");
+		Assertions.assertNotNull(chest.get(DataComponents.CONTAINER), "Chest has no container component");
 
-        ChestBlockEntity container = new ChestBlockEntity(BlockPos.ORIGIN, Blocks.CHEST.getDefaultState());
-        container.readComponents(chest);
-        for (int i = 0; i < container.size(); i++) {
-            Assertions.assertTrue(ItemStack.areEqual(stack, container.getStack(i)), "Chest item '%s' doesn't match expected '%s'".formatted(container.getStack(i), stack));
+        ChestBlockEntity container = new ChestBlockEntity(BlockPos.ZERO, Blocks.CHEST.defaultBlockState());
+        container.applyComponentsFromItemStack(chest);
+        for (int i = 0; i < container.getContainerSize(); i++) {
+            Assertions.assertTrue(ItemStack.matches(stack, container.getItem(i)), "Chest item '%s' doesn't match expected '%s'".formatted(container.getItem(i), stack));
         }
     }
 
     private void bundleOf(ItemStack stack, ItemStack bundle) {
-        BundleContentsComponent contents = bundle.get(DataComponentTypes.BUNDLE_CONTENTS);
+        BundleContents contents = bundle.get(DataComponents.BUNDLE_CONTENTS);
         Assertions.assertNotNull(contents, "Bundle has no contents component");
 
         Assertions.assertFalse(contents.isEmpty(), "Bundle is empty");
 
-        for (ItemStack item : contents.iterate()) {
-            Assertions.assertTrue(ItemStack.areEqual(stack, item), "Bundle item '%s' doesn't match expected '%s'".formatted(item, stack));
+        for (ItemStack item : contents.items()) {
+            Assertions.assertTrue(ItemStack.matches(stack, item), "Bundle item '%s' doesn't match expected '%s'".formatted(item, stack));
         }
     }
 
     private ItemStack getTestItem() {
-        return Items.DIAMOND.getDefaultStack();
+        return Items.DIAMOND.getDefaultInstance();
     }
 
     private ItemStack getEmptyBox(@Nullable DyeColor color) {
-        return ShulkerBoxBlock.getItemStack(color);
+        return ShulkerBoxBlock.getColoredItemStack(color);
     }
 
     private ItemStack getEmptyChest() {
-        return Items.CHEST.getDefaultStack();
+        return Items.CHEST.getDefaultInstance();
     }
 
     private ItemStack getEmptyDropper() {
-        return Items.DROPPER.getDefaultStack();
+        return Items.DROPPER.getDefaultInstance();
     }
 
     private ItemStack getEmptyBundle() {
-        return Items.BUNDLE.getDefaultStack();
+        return Items.BUNDLE.getDefaultInstance();
     }
 
     @Nullable
     private static DyeColor getBoxColor(Item item) {
-        return getBoxColor(Block.getBlockFromItem(item));
+        return getBoxColor(Block.byItem(item));
     }
 
     @Nullable

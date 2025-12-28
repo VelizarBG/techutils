@@ -7,28 +7,35 @@ import dev.kikugie.techutils.TechUtilsMod;
 import dev.kikugie.techutils.feature.containerscan.verifier.ItemPredicateEntryScreen;
 import dev.kikugie.techutils.util.ItemPredicateUtils;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.chat.Component;
+import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
 
 public class ItemPredicateCommand {
-	private static final SimpleCommandExceptionType WRONG_MAIN_HAND_EXCEPTION = new SimpleCommandExceptionType(Text.translatable("commands.itempredicate.placeholder.wrong_main_hand"));
-	private static final SimpleCommandExceptionType NO_PLACEHOLDER_FOUND_EXCEPTION = new SimpleCommandExceptionType(Text.translatable("commands.itempredicate.placeholder.get.not_found"));
-	private static final SimpleCommandExceptionType NOT_IN_CREATIVE_MODE_EXCEPTION = new SimpleCommandExceptionType(Text.translatable("commands.itempredicate.not_in_creative_mode"));
+	private static final SimpleCommandExceptionType WRONG_MAIN_HAND_EXCEPTION = new SimpleCommandExceptionType(Component.translatable("commands.itempredicate.placeholder.wrong_main_hand"));
+	private static final SimpleCommandExceptionType NO_PLACEHOLDER_FOUND_EXCEPTION = new SimpleCommandExceptionType(Component.translatable("commands.itempredicate.placeholder.get.not_found"));
+	private static final SimpleCommandExceptionType NOT_IN_CREATIVE_MODE_EXCEPTION = new SimpleCommandExceptionType(Component.translatable("commands.itempredicate.not_in_creative_mode"));
 
-	public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess ignoredAccess) {
+	public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext ignoredContext) {
 		dispatcher.register(literal("itempredicate")
+			.then(literal("audit")
+				.executes(ctx -> {
+					MixinEnvironment.getCurrentEnvironment().audit();
+					return 1;
+				})
+			)
 			.then(literal("give")
 				.executes(context -> {
 					var player = context.getSource().getPlayer();
 
 					enforceCreativeMode(player);
 
-					var offHandStack = player.getOffHandStack().copy();
+					var offHandStack = player.getOffhandItem().copy();
 					TechUtilsMod.QUEUED_END_CLIENT_TICK_TASKS.add(client -> client.setScreen(new ItemPredicateEntryScreen(player, offHandStack)));
 					return 1;
 				})
@@ -40,7 +47,7 @@ public class ItemPredicateCommand {
 
 					enforceCreativeMode(player);
 
-					var mainHandStack = player.getMainHandStack().copy();
+					var mainHandStack = player.getMainHandItem().copy();
 
 					if (!ItemPredicateUtils.isPredicate(mainHandStack)) {
 						throw WRONG_MAIN_HAND_EXCEPTION.create();
@@ -61,8 +68,8 @@ public class ItemPredicateCommand {
 
 						enforceCreativeMode(player);
 
-						var mainHandStack = player.getMainHandStack().copy();
-						var offHandStack = player.getOffHandStack().copy();
+						var mainHandStack = player.getMainHandItem().copy();
+						var offHandStack = player.getOffhandItem().copy();
 
 						if (!ItemPredicateUtils.isPredicate(mainHandStack)) {
 							throw WRONG_MAIN_HAND_EXCEPTION.create();
@@ -70,11 +77,11 @@ public class ItemPredicateCommand {
 
 						ItemPredicateUtils.setPlaceholder(mainHandStack, offHandStack);
 						int selectedSlot = player.getInventory().getSelectedSlot();
-						player.getInventory().setStack(selectedSlot, mainHandStack);
-						source.getClient().interactionManager.clickCreativeStack(mainHandStack, 36 + selectedSlot);
-						player.playerScreenHandler.sendContentUpdates();
+						player.getInventory().setItem(selectedSlot, mainHandStack);
+						source.getClient().gameMode.handleCreativeModeItemAdd(mainHandStack, 36 + selectedSlot);
+						player.inventoryMenu.broadcastChanges();
 
-						source.sendFeedback(Text.translatable("commands.itempredicate.placeholder.set.success"));
+						source.sendFeedback(Component.translatable("commands.itempredicate.placeholder.set.success"));
 
 						return 1;
 					})
@@ -86,7 +93,7 @@ public class ItemPredicateCommand {
 
 						enforceCreativeMode(player);
 
-						var mainHandStack = player.getMainHandStack().copy();
+						var mainHandStack = player.getMainHandItem().copy();
 
 						if (!ItemPredicateUtils.isPredicate(mainHandStack)) {
 							throw WRONG_MAIN_HAND_EXCEPTION.create();
@@ -96,11 +103,11 @@ public class ItemPredicateCommand {
 							throw NO_PLACEHOLDER_FOUND_EXCEPTION.create();
 						}
 
-						player.getInventory().setStack(PlayerInventory.OFF_HAND_SLOT, placeholder);
-						source.getClient().interactionManager.clickCreativeStack(placeholder, 45);
-						player.playerScreenHandler.sendContentUpdates();
+						player.getInventory().setItem(Inventory.SLOT_OFFHAND, placeholder);
+						source.getClient().gameMode.handleCreativeModeItemAdd(placeholder, 45);
+						player.inventoryMenu.broadcastChanges();
 
-						source.sendFeedback(Text.translatable("commands.itempredicate.placeholder.get.success"));
+						source.sendFeedback(Component.translatable("commands.itempredicate.placeholder.get.success"));
 
 						return 1;
 					})
@@ -109,7 +116,7 @@ public class ItemPredicateCommand {
 		);
 	}
 
-	private static void enforceCreativeMode(ClientPlayerEntity player) throws CommandSyntaxException {
+	private static void enforceCreativeMode(LocalPlayer player) throws CommandSyntaxException {
 		if (!player.isCreative())
 			throw NOT_IN_CREATIVE_MODE_EXCEPTION.create();
 	}

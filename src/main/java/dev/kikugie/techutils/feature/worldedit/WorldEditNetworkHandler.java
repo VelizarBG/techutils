@@ -2,10 +2,10 @@ package dev.kikugie.techutils.feature.worldedit;
 
 import dev.kikugie.techutils.TechUtilsMod;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
 import org.enginehub.worldeditcui.protocol.CUIPacket;
 
 import java.util.Optional;
@@ -16,7 +16,7 @@ import java.util.Optional;
  * If channel has already been registered by another mod, it leeches packets from it instead.
  */
 public class WorldEditNetworkHandler {
-	public static final Identifier CHANNEL = Identifier.of("worldedit", "cui");
+	public static final ResourceLocation CHANNEL = ResourceLocation.fromNamespaceAndPath("worldedit", "cui");
 	private static final int PROTOCOL = 4;
 	private static WorldEditNetworkHandler instance;
 	public final WorldEditStorage storage;
@@ -36,7 +36,7 @@ public class WorldEditNetworkHandler {
 	}
 
 	public static WorldEditNetworkHandler initHandler() {
-		if (MinecraftClient.getInstance().world == null) {
+		if (Minecraft.getInstance().level == null) {
 			throw new RuntimeException("Registering WorldEdit handler in non-world context!");
 		}
 		instance = new WorldEditNetworkHandler();
@@ -47,7 +47,7 @@ public class WorldEditNetworkHandler {
 		return Optional.ofNullable(instance);
 	}
 
-	public void onYoinkedPacket(CustomPayload payload) {
+	public void onYoinkedPacket(CustomPacketPayload payload) {
 		if (!this.yoinkPackets) return;
 		onPacket((CUIPacket) payload);
 	}

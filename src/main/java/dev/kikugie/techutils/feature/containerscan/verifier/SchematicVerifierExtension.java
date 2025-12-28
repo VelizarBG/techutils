@@ -4,30 +4,30 @@ import com.chocohead.mm.api.ClassTinkerers;
 import com.mojang.serialization.Codec;
 import fi.dy.masa.litematica.schematic.verifier.SchematicVerifier;
 import fi.dy.masa.litematica.schematic.verifier.SchematicVerifier.MismatchType;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextCodecs;
-import net.minecraft.text.TranslatableTextContent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public interface SchematicVerifierExtension {
 	String ERROR_LINES_ID = "techutils:error_lines";
-	Codec<List<Text>> ERROR_LINES_CODEC = TextCodecs.CODEC.listOf();
+	Codec<List<Component>> ERROR_LINES_CODEC = ComponentSerialization.CODEC.listOf();
 	MismatchType WRONG_INVENTORIES = ClassTinkerers.getEnum(MismatchType.class, "WRONG_INVENTORIES");
 
 	/**
 	 * One must imagine Sisyphus happy
 	 */
-	static @NotNull ItemStack addErrorLines(ItemStack stack, List<Text> lines) {
-		var data = stack.get(DataComponentTypes.CUSTOM_DATA);
-		NbtCompound nbt;
-		if (data == null || !(nbt = data.copyNbt()).contains(ERROR_LINES_ID)) {
+	static @NotNull ItemStack addErrorLines(ItemStack stack, List<Component> lines) {
+		var data = stack.get(DataComponents.CUSTOM_DATA);
+		CompoundTag nbt;
+		if (data == null || !(nbt = data.copyTag()).contains(ERROR_LINES_ID)) {
 			return stack;
 		}
 
@@ -35,9 +35,9 @@ public interface SchematicVerifierExtension {
 		var errorLines = ERROR_LINES_CODEC.parse(NbtOps.INSTANCE, nbt.getList(ERROR_LINES_ID).orElseThrow()).getOrThrow();
 		nbt.remove(ERROR_LINES_ID);
 		if (nbt.isEmpty()) {
-			stack.remove(DataComponentTypes.CUSTOM_DATA);
-			for (Text line : lines) {
-				if (line.getContent() instanceof TranslatableTextContent ttc
+			stack.remove(DataComponents.CUSTOM_DATA);
+			for (Component line : lines) {
+				if (line.getContents() instanceof TranslatableContents ttc
 					&& ttc.getKey().equals("item.components")
 				) {
 					Object[] args = ttc.getArgs();
@@ -45,7 +45,7 @@ public interface SchematicVerifierExtension {
 				}
 			}
 		} else {
-			stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+			stack.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt));
 		}
 		lines.addAll(errorLines);
 

@@ -5,13 +5,13 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.ScreenRect;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.GuiRenderer;
-import net.minecraft.client.gui.render.state.ItemGuiElementRenderState;
-import net.minecraft.client.gui.render.state.TexturedQuadGuiElementRenderState;
-import net.minecraft.client.texture.TextureSetup;
-import net.minecraft.util.math.ColorHelper;
+import net.minecraft.client.gui.render.state.GuiItemRenderState;
+import net.minecraft.client.gui.render.state.BlitRenderState;
+import net.minecraft.client.gui.render.TextureSetup;
+import net.minecraft.util.ARGB;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2f;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,8 +31,8 @@ public class GuiRendererMixin {
 		InventoryOverlay.transparentItemStates.clear();
 	}
 
-	@WrapOperation(method = "prepareItem", at = @At(value = "NEW", target = "Lnet/minecraft/client/gui/render/state/TexturedQuadGuiElementRenderState;"))
-	TexturedQuadGuiElementRenderState processTransparentItemState(
+	@WrapOperation(method = "submitBlitFromItemAtlas", at = @At(value = "NEW", target = "Lnet/minecraft/client/gui/render/state/BlitRenderState;"))
+	BlitRenderState processTransparentItemState(
 		RenderPipeline pipeline,
 		TextureSetup textureSetup,
 		Matrix3x2f pose,
@@ -45,13 +45,13 @@ public class GuiRendererMixin {
 		float v1,
 		float v2,
 		int color,
-		@Nullable ScreenRect scissorArea,
-		@Nullable ScreenRect bounds,
-		Operation<TexturedQuadGuiElementRenderState> original,
-		@Local(argsOnly = true) ItemGuiElementRenderState state
+		@Nullable ScreenRectangle scissorArea,
+		@Nullable ScreenRectangle bounds,
+		Operation<BlitRenderState> original,
+		@Local(argsOnly = true) GuiItemRenderState state
 	) {
 		if (InventoryOverlay.transparentItemStates.contains(state)) {
-			color = ColorHelper.withAlpha(Math.round(ColorHelper.getAlpha(color) * InventoryOverlay.MISSING_ITEM_ALPHA), color);
+			color = ARGB.color(Math.round(ARGB.alpha(color) * InventoryOverlay.MISSING_ITEM_ALPHA), color);
 			pipeline = RenderPipelines.GUI_TEXTURED;
 		}
 

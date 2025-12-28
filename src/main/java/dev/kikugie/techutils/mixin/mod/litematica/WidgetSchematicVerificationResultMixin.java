@@ -14,13 +14,13 @@ import fi.dy.masa.malilib.render.InventoryOverlay;
 import fi.dy.masa.malilib.util.GuiUtils;
 import fi.dy.masa.malilib.util.game.BlockUtils;
 import fi.dy.masa.malilib.util.nbt.NbtBlockUtils;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.CrafterBlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.CrafterBlockEntity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.world.Container;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -36,7 +36,7 @@ import static dev.kikugie.techutils.feature.containerscan.verifier.InventoryOver
 import static dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay.infoOverlayInstance;
 
 @Mixin(value = WidgetSchematicVerificationResult.class, remap = false)
-public abstract class WidgetSchematicVerificationResultMixin<InventoryBE extends BlockEntity & Inventory> extends WidgetListEntrySortable<GuiSchematicVerifier.BlockMismatchEntry> {
+public abstract class WidgetSchematicVerificationResultMixin<InventoryBE extends BlockEntity & Container> extends WidgetListEntrySortable<GuiSchematicVerifier.BlockMismatchEntry> {
 	public WidgetSchematicVerificationResultMixin(int x, int y, int width, int height, @Nullable GuiSchematicVerifier.BlockMismatchEntry entry, int listIndex) {
 		super(x, y, width, height, entry, listIndex);
 	}
@@ -48,8 +48,8 @@ public abstract class WidgetSchematicVerificationResultMixin<InventoryBE extends
 	@Unique
 	private dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay infoOverlay;
 
-	@WrapWithCondition(method = "postRenderHovered", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/gui/widgets/WidgetSchematicVerificationResult$BlockMismatchInfo;render(Lnet/minecraft/client/gui/DrawContext;IILnet/minecraft/client/MinecraftClient;)V", remap = true))
-	private boolean renderInventoryOverlayIfNecessary(WidgetSchematicVerificationResult.BlockMismatchInfo instance, DrawContext drawContext, int x, int y, MinecraftClient mc, DrawContext unused, int mouseX, int mouseY, boolean selected) {
+	@WrapWithCondition(method = "postRenderHovered", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/gui/widgets/WidgetSchematicVerificationResult$BlockMismatchInfo;render(Lnet/minecraft/client/gui/GuiGraphics;IILnet/minecraft/client/Minecraft;)V", remap = true))
+	private boolean renderInventoryOverlayIfNecessary(WidgetSchematicVerificationResult.BlockMismatchInfo instance, GuiGraphics graphics, int x, int y, Minecraft mc, GuiGraphics unused, int mouseX, int mouseY, boolean selected) {
 		//noinspection unchecked
 		var inventories = mismatchEntry.blockMismatch == null ? null : ((BlockMismatchExtension<InventoryBE>) mismatchEntry.blockMismatch).getInventories$techutils();
 		if (inventories == null) {
@@ -68,21 +68,21 @@ public abstract class WidgetSchematicVerificationResultMixin<InventoryBE extends
 		InventoryBE left = inventories.getLeft();
 		InventoryBE right = inventories.getRight();
 		if (infoOverlay == null) {
-			infoOverlay = new dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay(new LinkedStorageEntry(BlockPos.ORIGIN, right, left));
+			infoOverlay = new dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay(new LinkedStorageEntry(BlockPos.ZERO, right, left));
 		}
 
 		delayRenderingHoveredStack = true;
 
-		renderInventoryOverlay(BlockInfoAlignment.CENTER, LeftRight.LEFT, 0, mc, drawContext, left, mouseX, mouseY);
+		renderInventoryOverlay(BlockInfoAlignment.CENTER, LeftRight.LEFT, 0, mc, graphics, left, mouseX, mouseY);
 
 		infoOverlayInstance = infoOverlay;
-		renderInventoryOverlay(BlockInfoAlignment.CENTER, LeftRight.RIGHT, 0, mc, drawContext, right, mouseX, mouseY);
+		renderInventoryOverlay(BlockInfoAlignment.CENTER, LeftRight.RIGHT, 0, mc, graphics, right, mouseX, mouseY);
 		infoOverlayInstance = null;
 
 		delayRenderingHoveredStack = false;
 
 		if (hoveredStackToRender != null) {
-			InventoryOverlay.renderStackToolTipStyled(drawContext, mouseX, mouseY, hoveredStackToRender, mc);
+			InventoryOverlay.renderStackToolTipStyled(graphics, mouseX, mouseY, hoveredStackToRender, mc);
 			hoveredStackToRender = null;
 		}
 
@@ -90,19 +90,19 @@ public abstract class WidgetSchematicVerificationResultMixin<InventoryBE extends
 	}
 
 	/**
-	 * Basically a clone of {@link RenderUtils#renderInventoryOverlay(DrawContext, BlockInfoAlignment, LeftRight, int, World, BlockPos, MinecraftClient)}
+	 * Basically a clone of {@link RenderUtils#renderInventoryOverlay(GuiGraphics, BlockInfoAlignment, LeftRight, int, Level, BlockPos, Minecraft)}
 	 */
 	@Unique
 	private int renderInventoryOverlay(BlockInfoAlignment align, LeftRight side, int offY,
-											 MinecraftClient mc, DrawContext drawContext, InventoryBE inventoryBE,
-											 double mouseX, double mouseY)
+									   Minecraft mc, GuiGraphics drawContext, InventoryBE inventoryBE,
+									   double mouseX, double mouseY)
 	{
-		var nbt = inventoryBE.createNbtWithIdentifyingData(mc.world.getRegistryManager());
+		var nbt = inventoryBE.saveWithFullMetadata(mc.level.registryAccess());
 		InventoryOverlay.Context ctx = new InventoryOverlay.Context(InventoryOverlay.getBestInventoryType(inventoryBE, nbt), inventoryBE, inventoryBE, null, nbt, null);
 
 		if (ctx.inv() != null)
 		{
-			final InventoryOverlay.InventoryProperties props = InventoryOverlay.getInventoryPropsTemp(ctx.type(), ctx.inv().size());
+			final InventoryOverlay.InventoryProperties props = InventoryOverlay.getInventoryPropsTemp(ctx.type(), ctx.inv().getContainerSize());
 
 //            Litematica.LOGGER.error("render(): type [{}], inv [{}], be [{}], nbt [{}]", ctx.type().name(), ctx.inv().size(), ctx.be() != null, ctx.nbt() != null ? ctx.nbt().getString("id") : new NbtCompound());
 
@@ -132,10 +132,10 @@ public abstract class WidgetSchematicVerificationResultMixin<InventoryBE extends
 	}
 
 	/**
-	 * Basically a clone of {@link RenderUtils#renderInventoryOverlay(DrawContext, BlockInfoAlignment, LeftRight, int, Inventory, InventoryOverlay.InventoryRenderType, InventoryOverlay.InventoryProperties, Set, MinecraftClient)}
+	 * Basically a clone of {@link RenderUtils#renderInventoryOverlay(GuiGraphics, BlockInfoAlignment, LeftRight, int, Container, InventoryOverlay.InventoryRenderType, InventoryOverlay.InventoryProperties, Set, Minecraft)}
 	 */
 	@Unique
-	private static int renderInventoryOverlay(DrawContext drawContext, LeftRight side, int offY, Inventory inv, InventoryOverlay.InventoryRenderType type, InventoryOverlay.InventoryProperties props, Set<Integer> disabledSlots, MinecraftClient mc, BlockInfoAlignment align,
+	private static int renderInventoryOverlay(GuiGraphics drawContext, LeftRight side, int offY, Container inv, InventoryOverlay.InventoryRenderType type, InventoryOverlay.InventoryProperties props, Set<Integer> disabledSlots, Minecraft mc, BlockInfoAlignment align,
 											  double mouseX, double mouseY)
 	{
 		int xInv = 0;
@@ -160,7 +160,7 @@ public abstract class WidgetSchematicVerificationResultMixin<InventoryBE extends
 //		fi.dy.masa.malilib.render.RenderUtils.color(1f, 1f, 1f, 1f);
 
 		InventoryOverlay.renderInventoryBackground(drawContext, type, xInv, yInv, props.slotsPerRow, props.totalSlots, mc);
-		InventoryOverlay.renderInventoryStacks(drawContext, type, inv, xInv + props.slotOffsetX, yInv + props.slotOffsetY, props.slotsPerRow, 0, inv.size(), disabledSlots, mc, mouseX, mouseY);
+		InventoryOverlay.renderInventoryStacks(drawContext, type, inv, xInv + props.slotOffsetX, yInv + props.slotOffsetY, props.slotsPerRow, 0, inv.getContainerSize(), disabledSlots, mc, mouseX, mouseY);
 
         return props.height + compatShift;
 	}

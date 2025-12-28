@@ -6,15 +6,13 @@
     "mixins": [
     ],
     "client": [
-        "compactscoreboard.InGameHudMixin",
-        "containerscan.ClientPlayerInteractionManagerMixin",
+        "compactscoreboard.GuiMixin",
+        "containerscan.MultiPlayerGameModeMixin",
         "containerscan.CrafterScreenMixin",
-        "containerscan.DrawContextMixin",
+        "containerscan.GuiGraphicsMixin",
         "containerscan.GuiRendererMixin",
-        "containerscan.HandledScreenMixin",
-        "containerscan.MinecraftClientAccessor",
-        "containerscan.MinecraftClientMixin",
-        "containerscan.ScreenHandlerAccessor",
+        "containerscan.AbstractContainerScreenMixin",
+        "containerscan.MinecraftMixin",
         "mod.fapi.ClientPlayNetworkAddonMixin",
         "mod.litematica.BlockMismatchMixin",
         "mod.litematica.GuiSchematicLoad$ButtonListenerMixin",
@@ -31,8 +29,7 @@
         "mod.litematica.SchematicVerifierMixin",
         "mod.litematica.WidgetListSchematicVerificationResultsMixin",
         "mod.litematica.WidgetSchematicVerificationResultMixin",
-        "preview.BlockEntityAccessor",
-        "worldeditsync.ClientPlayNetworkHandlerMixin",
+        "worldeditsync.ClientPacketListenerMixin",
         "worldeditsync.FabricCUIPacketHandler"
     ],
     "injectors": {

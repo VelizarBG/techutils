@@ -1,8 +1,3 @@
 accessWidener v1 named
 
 #accessible method net/minecraft/item/BundleItem addToBundle (Lnet/minecraft/item/ItemStack;Lnet/minecraft/item/ItemStack;)
-accessible class net/minecraft/client/gui/screen/ingame/CreativeInventoryScreen$CreativeSlot
-accessible class net/minecraft/client/gui/screen/ingame/CreativeInventoryScreen$LockableSlot
-accessible class net/minecraft/client/render/RenderLayer$MultiPhaseParameters
-accessible class net/minecraft/client/render/RenderPhase$LineWidth
-extendable method net/minecraft/client/render/block/FluidRenderer vertex (Lnet/minecraft/client/render/VertexConsumer;FFFFFFFFI)V

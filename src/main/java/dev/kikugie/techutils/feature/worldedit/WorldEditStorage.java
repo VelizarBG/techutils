@@ -1,7 +1,7 @@
 package dev.kikugie.techutils.feature.worldedit;
 
 import dev.kikugie.techutils.util.ValidBox;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;

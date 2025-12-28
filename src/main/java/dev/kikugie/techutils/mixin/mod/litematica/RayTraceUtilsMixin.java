@@ -3,8 +3,8 @@ package dev.kikugie.techutils.mixin.mod.litematica;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import dev.kikugie.techutils.config.LitematicConfigs;
 import fi.dy.masa.litematica.util.RayTraceUtils;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -12,9 +12,9 @@ import org.spongepowered.asm.mixin.injection.At;
 public class RayTraceUtilsMixin {
 	@ModifyExpressionValue(method = {"traceFirstStep", "traceLoopSteps"}, at = @At(
 		value = "INVOKE",
-		target = "Lnet/minecraft/block/BlockState;getOutlineShape(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/ShapeContext;)Lnet/minecraft/util/shape/VoxelShape;"
+		target = "Lnet/minecraft/world/level/block/state/BlockState;getShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;"
 	))
 	private static VoxelShape useFullCube(VoxelShape original) {
-		return LitematicConfigs.EASY_PLACE_FULL_BLOCKS.getBooleanValue() && !original.isEmpty() ? VoxelShapes.fullCube() : original;
+		return LitematicConfigs.EASY_PLACE_FULL_BLOCKS.getBooleanValue() && !original.isEmpty() ? Shapes.block() : original;
 	}
 }

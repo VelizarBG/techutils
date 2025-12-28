@@ -1,7 +1,7 @@
 package dev.kikugie.techutils.util;
 
 import fi.dy.masa.litematica.selection.Box;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -100,8 +100,8 @@ public class ValidBox extends Box {
 	}
 
 	private void updateCorners() {
-		BlockPos pos1 = getPos1(BlockPos.ORIGIN);
-		BlockPos pos2 = getPos2(BlockPos.ORIGIN);
+		BlockPos pos1 = getPos1(BlockPos.ZERO);
+		BlockPos pos2 = getPos2(BlockPos.ZERO);
 
 		int x1 = pos1.getX();
 		int y1 = pos1.getY();

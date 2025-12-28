@@ -19,25 +19,25 @@ import fi.dy.masa.malilib.util.IntBoundingBox;
 import fi.dy.masa.malilib.util.WorldUtils;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.predicate.item.ItemPredicate;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.Property;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.apache.commons.lang3.tuple.Pair;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -64,10 +64,10 @@ import static fi.dy.masa.litematica.schematic.verifier.SchematicVerifier.Mismatc
 import static fi.dy.masa.litematica.schematic.verifier.SchematicVerifier.MismatchType;
 
 @Mixin(value = SchematicVerifier.class, remap = false)
-public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & Inventory> extends TaskBase implements SchematicVerifierExtension {
-	@Shadow @Final private static BlockPos.Mutable MUTABLE_POS;
+public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & Container> extends TaskBase implements SchematicVerifierExtension {
+	@Shadow @Final private static BlockPos.MutableBlockPos MUTABLE_POS;
 	@Shadow private SchematicPlacement schematicPlacement;
-	@Shadow private ClientWorld worldClient;
+	@Shadow private ClientLevel worldClient;
 
 	@Shadow protected abstract void addAndSortPositions(MismatchType type, ArrayListMultimap<Pair<BlockState, BlockState>, BlockPos> sourceMap, List<BlockPos> listOut, int maxEntries);
 
@@ -90,7 +90,7 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & I
 		return wrongInventories.size();
 	}
 
-	@ModifyExpressionValue(method = "verifyChunks", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/world/ChunkManagerSchematic;isChunkLoaded(II)Z", remap = true))
+	@ModifyExpressionValue(method = "verifyChunks", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/world/ChunkManagerSchematic;hasChunk(II)Z", remap = true))
 	private boolean ensureInventoriesAreLoaded(boolean isLoaded, @Local ChunkPos pos) {
 		return isLoaded && canProcessChunk(pos);
 	}
@@ -98,17 +98,17 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & I
 	@Redirect(
 		method = "verifyChunks",
 		slice = @Slice(
-			from = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/world/ChunkManagerSchematic;isChunkLoaded(II)Z")
+			from = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/world/ChunkManagerSchematic;hasChunk(II)Z")
 		),
 		at = @At(
 			value = "INVOKE",
-			target = "Lnet/minecraft/client/world/ClientWorld;getChunk(II)Lnet/minecraft/world/chunk/WorldChunk;",
+			target = "Lnet/minecraft/client/multiplayer/ClientLevel;getChunk(II)Lnet/minecraft/world/level/chunk/LevelChunk;",
 			ordinal = 0,
 			remap = true
 		)
 	)
-	private WorldChunk pickBestWorld(ClientWorld clientWorld, int x, int z) {
-		return (WorldUtils.getBestWorld(mc) instanceof World world ? world : clientWorld).getChunk(x, z);
+	private LevelChunk pickBestWorld(ClientLevel clientLevel, int x, int z) {
+		return (WorldUtils.getBestWorld(mc) instanceof Level level ? level : clientLevel).getChunk(x, z);
 	}
 
 	/**
@@ -153,25 +153,25 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & I
 		return this.areSurroundingChunksLoaded(pos, this.worldClient, 0);
 	}
 
-	@Inject(method = "verifyChunk", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/schematic/verifier/SchematicVerifier;checkBlockStates(IIILnet/minecraft/block/BlockState;Lnet/minecraft/block/BlockState;)V", remap = true))
-	private void checkInventories(Chunk chunkClient, Chunk chunkSchematic, IntBoundingBox box, CallbackInfoReturnable<Boolean> cir) {
+	@Inject(method = "verifyChunk", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/schematic/verifier/SchematicVerifier;checkBlockStates(IIILnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;)V", remap = true))
+	private void checkInventories(ChunkAccess chunkClient, ChunkAccess chunkSchematic, IntBoundingBox box, CallbackInfoReturnable<Boolean> cir) {
 		var expectedBE = chunkSchematic.getBlockEntity(MUTABLE_POS);
 		var foundBE = chunkClient.getBlockEntity(MUTABLE_POS);
-		if (!(expectedBE instanceof Inventory expected && foundBE instanceof Inventory found)
+		if (!(expectedBE instanceof Container expected && foundBE instanceof Container found)
 			|| expectedBE.getType() != foundBE.getType()) {
 			return;
 		}
 
-		int size = expected.size();
-		if (size != found.size()) {
+		int size = expected.getContainerSize();
+		if (size != found.getContainerSize()) {
 			return;
 		}
 
 		var itemsForStates = ItemUtilsAccessor.getItemsForStates();
 		boolean verifyItemComponents = LitematicConfigs.VERIFY_ITEM_COMPONENTS.getBooleanValue();
 		for (int i = size - 1; i >= 0; i--) {
-			var expectedStack = expected.getStack(i);
-			var foundStack = found.getStack(i);
+			var expectedStack = expected.getItem(i);
+			var foundStack = found.getItem(i);
 
 			Boolean predFailed = null;
 			if (ItemPredicateUtils.getPredicate(expectedStack) instanceof ItemPredicate predicate) {
@@ -185,7 +185,7 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & I
 					|| verifyItemComponents
 					&& !Objects.equals(expectedStack.getComponents(), foundStack.getComponents())
 			) {
-				var pos = MUTABLE_POS.toImmutable();
+				var pos = MUTABLE_POS.immutable();
 				//noinspection unchecked
 				var pair = populateTooltipsIfNecessary((InventoryBE) expected, (InventoryBE) found, verifyItemComponents);
 				wrongInventories.add(pair);
@@ -200,36 +200,36 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & I
 	 */
 	@Unique
 	private void warCrime(InventoryBE expected, InventoryBE found, IdentityHashMap<BlockState, ItemStack> itemsForStates, BlockPos pos) {
-		BlockState foundState = found.getCachedState();
-		HashMap<Property<?>, Comparable<?>> propertyMap = new HashMap<>(foundState.getEntries());
+		BlockState foundState = found.getBlockState();
+		HashMap<Property<?>, Comparable<?>> propertyMap = new HashMap<>(foundState.getValues());
 
-		propertyMap.put(BooleanProperty.of("war_crime"), true);
+		propertyMap.put(BooleanProperty.create("war_crime"), true);
 		BlockState newState = new BlockState(foundState.getBlock(), new Reference2ObjectArrayMap<>(propertyMap), null);
 
 		itemsForStates.put(newState, ItemUtils.getItemForBlock(worldClient, pos, foundState, true));
-		wrongInventoriesPositions.put(Pair.of(expected.getCachedState(), newState), pos);
-		found.setCachedState(newState);
+		wrongInventoriesPositions.put(Pair.of(expected.getBlockState(), newState), pos);
+		found.setBlockState(newState);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Unique
 	private Pair<InventoryBE, InventoryBE> populateTooltipsIfNecessary(InventoryBE expected, InventoryBE found, boolean verifyItemComponents) {
-		DynamicRegistryManager lookupClient = worldClient.getRegistryManager();
-		DynamicRegistryManager lookupExpected = expected.getWorld().getRegistryManager();
-		final var expectedNew = (InventoryBE) BlockEntity.createFromNbt(expected.getPos(), expected.getCachedState(), expected.createNbtWithIdentifyingData(lookupExpected), lookupClient);
-		DynamicRegistryManager lookupFound = found.getWorld().getRegistryManager();
-		final var foundNew = (InventoryBE) BlockEntity.createFromNbt(found.getPos(), found.getCachedState(), found.createNbtWithIdentifyingData(lookupFound), lookupClient);
-		int size = expected.size();
+		RegistryAccess accessClient = worldClient.registryAccess();
+		RegistryAccess accessExpected = expected.getLevel().registryAccess();
+		final var expectedNew = (InventoryBE) BlockEntity.loadStatic(expected.getBlockPos(), expected.getBlockState(), expected.saveWithFullMetadata(accessExpected), accessClient);
+		RegistryAccess accessFound = found.getLevel().registryAccess();
+		final var foundNew = (InventoryBE) BlockEntity.loadStatic(found.getBlockPos(), found.getBlockState(), found.saveWithFullMetadata(accessFound), accessClient);
+		int size = expected.getContainerSize();
 		for (int i = size - 1; i >= 0; i--) {
-			var expectedStack = expectedNew.getStack(i);
-			var foundStack = foundNew.getStack(i);
+			var expectedStack = expectedNew.getItem(i);
+			var foundStack = foundNew.getItem(i);
 
 			if (ItemPredicateUtils.getPredicate(expectedStack) instanceof ItemPredicate predicate) {
-				expectedStack.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Item Predicate")
-					.styled(style -> style.withColor(Formatting.WHITE).withItalic(false))
+				expectedStack.set(DataComponents.CUSTOM_NAME, Component.literal("Item Predicate")
+					.withStyle(style -> style.withColor(ChatFormatting.WHITE).withItalic(false))
 				);
-				foundStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, nbtComponent ->
-					nbtComponent.apply(nbt ->
+				foundStack.update(DataComponents.CUSTOM_DATA, CustomData.EMPTY, nbtComponent ->
+					nbtComponent.update(nbt ->
 						nbt.put(ERROR_LINES_ID, ERROR_LINES_CODEC
 							.encodeStart(NbtOps.INSTANCE, ItemPredicateUtils.getErrorLines(foundStack, predicate)).getOrThrow())
 					)
@@ -238,11 +238,11 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & I
 			}
 
 			if (verifyItemComponents && !Objects.equals(expectedStack.getComponents(), foundStack.getComponents())) {
-				foundStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, nbtComponent ->
-					nbtComponent.apply(nbt ->
+				foundStack.update(DataComponents.CUSTOM_DATA, CustomData.EMPTY, nbtComponent ->
+					nbtComponent.update(nbt ->
 						nbt.put(ERROR_LINES_ID, ERROR_LINES_CODEC
-							.encodeStart(NbtOps.INSTANCE, List.of(Text.literal("Item components don't match!")
-								.styled(style -> style.withColor(Formatting.RED).withItalic(false)))).getOrThrow())
+							.encodeStart(NbtOps.INSTANCE, List.of(Component.literal("Item components don't match!")
+								.withStyle(style -> style.withColor(ChatFormatting.RED).withItalic(false)))).getOrThrow())
 					)
 				);
 			}
@@ -257,8 +257,8 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & I
 		}
 
 		for (var pair : wrongInventories) {
-			BlockState leftState = pair.getLeft().getCachedState();
-			BlockState rightState = pair.getRight().getCachedState();
+			BlockState leftState = pair.getLeft().getBlockState();
+			BlockState rightState = pair.getRight().getBlockState();
 			BlockMismatch blockMismatch = new BlockMismatch(WRONG_INVENTORIES, leftState, rightState, 1);
 			//noinspection unchecked
 			((BlockMismatchExtension<InventoryBE>) blockMismatch).setInventories$techutils(pair);

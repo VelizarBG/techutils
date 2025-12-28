@@ -1,31 +1,31 @@
 package dev.kikugie.techutils.util;
 
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.component.ComponentType;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ContainerComponent;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.entity.TypedEntityData;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.TypedEntityData;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.StringNbtReader;
-import net.minecraft.predicate.NumberRange;
-import net.minecraft.predicate.component.ComponentPredicate;
-import net.minecraft.predicate.item.ItemPredicate;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryOps;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.storage.NbtWriteView;
-import net.minecraft.text.Text;
-import net.minecraft.util.ErrorReporter;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Util;
+import net.minecraft.nbt.TagParser;
+import net.minecraft.advancements.critereon.MinMaxBounds;
+import net.minecraft.core.component.predicates.DataComponentPredicate;
+import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -40,27 +40,27 @@ import java.util.stream.Stream;
 public final class ItemPredicateUtils {
 	public static final String PREDICATE_ID = "techutils:item_predicate";
 	private static final Map<String, ItemPredicate> PREDICATE_CACHE = new HashMap<>();
-	private static final Reference2ReferenceOpenHashMap<ItemPredicate, List<Text>> PRETTIFIED_PREDICATES = new Reference2ReferenceOpenHashMap<>();
+	private static final Reference2ReferenceOpenHashMap<ItemPredicate, List<Component>> PRETTIFIED_PREDICATES = new Reference2ReferenceOpenHashMap<>();
 
 	private ItemPredicateUtils() {}
 
 	public static ItemStack createPredicateStack(String rawPredicate, ItemStack placeholder) {
-		NbtWriteView writeView = NbtWriteView.create(ErrorReporter.EMPTY);
-		ItemStack stack = Items.COMMAND_BLOCK.getDefaultStack();
+		TagValueOutput nbtOutput = TagValueOutput.createWithoutContext(ProblemReporter.DISCARDING);
+		ItemStack stack = Items.COMMAND_BLOCK.getDefaultInstance();
 
-		writeView.putString("Command", rawPredicate);
-		BlockItem.setBlockEntityData(stack, BlockEntityType.COMMAND_BLOCK, writeView);
+		nbtOutput.putString("Command", rawPredicate);
+		BlockItem.setBlockEntityData(stack, BlockEntityType.COMMAND_BLOCK, nbtOutput);
 
 		setPlaceholder(stack, placeholder);
 
-		stack.apply(
-			DataComponentTypes.CUSTOM_DATA,
-			NbtComponent.DEFAULT,
-			nbtComponent -> nbtComponent.apply(custom -> custom.put(PREDICATE_ID, new NbtCompound()))
+		stack.update(
+			DataComponents.CUSTOM_DATA,
+			CustomData.EMPTY,
+			customData -> customData.update(custom -> custom.put(PREDICATE_ID, new CompoundTag()))
 		);
 
-		stack.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Item Predicate")
-			.styled(style -> style.withColor(Formatting.WHITE).withItalic(false))
+		stack.set(DataComponents.CUSTOM_NAME, Component.literal("Item Predicate")
+			.withStyle(style -> style.withColor(ChatFormatting.WHITE).withItalic(false))
 		);
 
 		return stack;
@@ -68,13 +68,13 @@ public final class ItemPredicateUtils {
 
 	public static boolean isPredicate(ItemStack stack) {
 		return stack.getItem() == Items.COMMAND_BLOCK
-			&& stack.get(DataComponentTypes.CUSTOM_DATA) instanceof NbtComponent nbtComponent
-			&& nbtComponent.copyNbt().contains(PREDICATE_ID);
+			&& stack.get(DataComponents.CUSTOM_DATA) instanceof CustomData customData
+			&& customData.copyTag().contains(PREDICATE_ID);
 	}
 
 	public static String getRawPredicate(ItemStack stack) {
-		return stack.get(DataComponentTypes.BLOCK_ENTITY_DATA) instanceof TypedEntityData<BlockEntityType<?>> data
-			? data.copyNbtWithoutId().getString("Command").orElse("")
+		return stack.get(DataComponents.BLOCK_ENTITY_DATA) instanceof TypedEntityData<BlockEntityType<?>> data
+			? data.copyTagWithoutId().getString("Command").orElse("")
 			: "";
 	}
 
@@ -98,16 +98,16 @@ public final class ItemPredicateUtils {
 
 		rawPredicate = rawPredicate.substring(startingTokenIndex);
 
-		NbtCompound nbt;
+		CompoundTag nbt;
 		try {
-			nbt = StringNbtReader.readCompound(rawPredicate).getCompound("predicate").orElseGet(NbtCompound::new);
+			nbt = TagParser.parseCompoundFully(rawPredicate).getCompound("predicate").orElseGet(CompoundTag::new);
 			if (nbt.isEmpty()) {
 				throw new IllegalArgumentException("No item predicate is present!");
 			}
 		} catch (Throwable throwable) {
 			return saveFailedPredicate(rawPredicate, throwable.getMessage());
 		}
-		var result = ItemPredicate.CODEC.parse(RegistryOps.of(NbtOps.INSTANCE, MinecraftClient.getInstance().world.getRegistryManager()), nbt);
+		var result = ItemPredicate.CODEC.parse(RegistryOps.create(NbtOps.INSTANCE, Minecraft.getInstance().level.registryAccess()), nbt);
 		if (result.isSuccess()) {
 			var predicate = result.getOrThrow();
 			PREDICATE_CACHE.put(rawPredicate, predicate);
@@ -119,16 +119,16 @@ public final class ItemPredicateUtils {
 		}
 	}
 
-	public static List<Text> getPrettyPredicate(ItemStack predicateStack) {
+	public static List<Component> getPrettyPredicate(ItemStack predicateStack) {
 		var predicate = ItemPredicateUtils.getPredicate(predicateStack);
 		if (predicate == null) {
 			return List.of();
 		}
 
 		if (ItemPredicateUtils.getPlaceholder(predicateStack) instanceof ItemStack placeholder) {
-			var nbt = new NbtCompound();
-			var lookup = MinecraftClient.getInstance().world.getRegistryManager();
-			nbt.put("placeholder", toNbtAllowEmpty(placeholder, lookup));
+			var nbt = new CompoundTag();
+			var registryAccess = Minecraft.getInstance().level.registryAccess();
+			nbt.put("placeholder", toNbtAllowEmpty(placeholder, registryAccess));
 			var lines = new ArrayList<>(PRETTIFIED_PREDICATES.get(predicate));
 			lines.addAll(ContainerUtils.prettifyNbt(nbt));
 			return lines;
@@ -137,29 +137,29 @@ public final class ItemPredicateUtils {
 		}
 	}
 
-	public static List<Text> getErrorLines(ItemStack stack, ItemPredicate predicate) {
-		var lines = new ArrayList<Text>();
+	public static List<Component> getErrorLines(ItemStack stack, ItemPredicate predicate) {
+		var lines = new ArrayList<Component>();
 		var items = predicate.items();
 		var count = predicate.count();
 		var components = predicate.components();
 
-		if (items.isPresent() && !stack.isIn(items.get())) {
-			var msg = Text.literal("Incorrect item type. Expected: ")
-				.styled(style -> style.withColor(Formatting.RED).withItalic(false));
+		if (items.isPresent() && !stack.is(items.get())) {
+			var msg = Component.literal("Incorrect item type. Expected: ")
+				.withStyle(style -> style.withColor(ChatFormatting.RED).withItalic(false));
 			items.get().stream()
-				.flatMap(i -> Stream.of(Text.of(", "), Text.of(i.getIdAsString())))
+				.flatMap(i -> Stream.of(Component.literal(", "), Component.literal(i.getRegisteredName())))
 				.skip(1)
 				.forEach(msg::append);
 			lines.add(msg);
 		}
 
-		if (!count.test(stack.getCount())) {
+		if (!count.matches(stack.getCount())) {
 			var min = count.bounds().min();
 			var max = count.bounds().max();
-			var msg = Text.literal("Incorrect count. Expected: ")
-				.styled(style -> style.withColor(Formatting.RED).withItalic(false));
+			var msg = Component.literal("Incorrect count. Expected: ")
+				.withStyle(style -> style.withColor(ChatFormatting.RED).withItalic(false));
 			if (min.isPresent() && max.isPresent() && min.get().equals(max.get())) {
-				msg.append(Text.of(min.get().toString()));
+				msg.append(Component.literal(min.get().toString()));
 			} else {
 				if (min.isPresent()) {
 					msg.append("at least " + min.get());
@@ -172,34 +172,34 @@ public final class ItemPredicateUtils {
 			lines.add(msg);
 		}
 
-		var wrongComponents = new ArrayList<ComponentType<?>>();
-		for (Map.Entry<ComponentType<?>, Optional<?>> entry : components.exact().toChanges().entrySet()) {
-			ComponentType<?> type = entry.getKey();
+		var wrongComponents = new ArrayList<DataComponentType<?>>();
+		for (Map.Entry<DataComponentType<?>, Optional<?>> entry : components.exact().asPatch().entrySet()) {
+			DataComponentType<?> type = entry.getKey();
 			if (!Objects.equals(entry.getValue().orElse(null), stack.get(type))) {
 				wrongComponents.add(type);
 			}
 		}
 		if (!wrongComponents.isEmpty()) {
-			var msg = Text.literal("Wrong/missing components: ")
-				.styled(style -> style.withColor(Formatting.RED).withItalic(false));
+			var msg = Component.literal("Wrong/missing components: ")
+				.withStyle(style -> style.withColor(ChatFormatting.RED).withItalic(false));
 			wrongComponents.stream()
-				.flatMap(t -> Stream.of(Text.of(", "), Text.of(Util.registryValueToString(Registries.DATA_COMPONENT_TYPE, t))))
+				.flatMap(t -> Stream.of(Component.literal(", "), Component.literal(Util.getRegisteredName(BuiltInRegistries.DATA_COMPONENT_TYPE, t))))
 				.skip(1)
 				.forEach(msg::append);
 			lines.add(msg);
 		}
 
-		var wrongSubPredicates = new ArrayList<ComponentPredicate.Type<?>>();
-		for (Map.Entry<ComponentPredicate.Type<?>, ComponentPredicate> entry : components.partial().entrySet()) {
-			if(!entry.getValue().test(stack)) {
+		var wrongSubPredicates = new ArrayList<DataComponentPredicate.Type<?>>();
+		for (Map.Entry<DataComponentPredicate.Type<?>, DataComponentPredicate> entry : components.partial().entrySet()) {
+			if(!entry.getValue().matches(stack)) {
 				wrongSubPredicates.add(entry.getKey());
 			}
 		}
 		if (!wrongSubPredicates.isEmpty()) {
-			var msg = Text.literal("Failed sub-predicates: ")
-				.styled(style -> style.withColor(Formatting.RED).withItalic(false));
+			var msg = Component.literal("Failed sub-predicates: ")
+				.withStyle(style -> style.withColor(ChatFormatting.RED).withItalic(false));
 			wrongSubPredicates.stream()
-				.flatMap(t -> Stream.of(Text.of(", "), Text.of(Util.registryValueToString(Registries.DATA_COMPONENT_PREDICATE_TYPE, t))))
+				.flatMap(t -> Stream.of(Component.literal(", "), Component.literal(Util.getRegisteredName(BuiltInRegistries.DATA_COMPONENT_PREDICATE_TYPE, t))))
 				.skip(1)
 				.forEach(msg::append);
 			lines.add(msg);
@@ -210,39 +210,39 @@ public final class ItemPredicateUtils {
 
 	@Nullable
 	public static ItemStack getPlaceholder(ItemStack stack) {
-		return isPredicate(stack) && stack.get(DataComponentTypes.CONTAINER) instanceof ContainerComponent containerComponent
-			? containerComponent.copyFirstStack()
+		return isPredicate(stack) && stack.get(DataComponents.CONTAINER) instanceof ItemContainerContents contents
+			? contents.copyOne()
 			: null;
 	}
 
 	public static void setPlaceholder(ItemStack predicateStack, ItemStack placeholder) {
 		if (placeholder == null || placeholder.isEmpty()) {
-			predicateStack.remove(DataComponentTypes.CONTAINER);
+			predicateStack.remove(DataComponents.CONTAINER);
 		} else {
 			predicateStack.set(
-				DataComponentTypes.CONTAINER,
-				ContainerComponent.fromStacks(List.of(placeholder))
+				DataComponents.CONTAINER,
+				ItemContainerContents.fromItems(List.of(placeholder))
 			);
 		}
 	}
 
 	private static ItemPredicate saveFailedPredicate(String rawPredicate, String message) {
-		var markerPredicate = ItemPredicate.Builder.create().count(NumberRange.IntRange.exactly(-1)).build();
+		var markerPredicate = ItemPredicate.Builder.item().withCount(MinMaxBounds.Ints.exactly(-1)).build();
 		PREDICATE_CACHE.put(rawPredicate, markerPredicate);
 
-		var title = Text.literal("Could not parse item predicate!")
-			.styled(style -> style.withColor(Formatting.RED).withItalic(false));
-		var lines = new ArrayList<Text>();
+		var title = Component.literal("Could not parse item predicate!")
+			.withStyle(style -> style.withColor(ChatFormatting.RED).withItalic(false));
+		var lines = new ArrayList<Component>();
 		lines.add(title);
 		for (String line : message.split("\n")) {
-			lines.add(Text.literal(line)
-				.styled(style -> style.withColor(Formatting.RED).withItalic(false)));
+			lines.add(Component.literal(line)
+				.withStyle(style -> style.withColor(ChatFormatting.RED).withItalic(false)));
 		}
 		PRETTIFIED_PREDICATES.put(markerPredicate, lines);
 		return markerPredicate;
 	}
 
-	private static NbtElement toNbtAllowEmpty(ItemStack stack, RegistryWrapper.WrapperLookup registries) {
-		return stack.isEmpty() ? new NbtCompound() : ItemStack.CODEC.encode(stack, registries.getOps(NbtOps.INSTANCE), new NbtCompound()).getOrThrow();
+	private static Tag toNbtAllowEmpty(ItemStack stack, HolderLookup.Provider registries) {
+		return stack.isEmpty() ? new CompoundTag() : ItemStack.CODEC.encode(stack, registries.createSerializationContext(NbtOps.INSTANCE), new CompoundTag()).getOrThrow();
 	}
 }

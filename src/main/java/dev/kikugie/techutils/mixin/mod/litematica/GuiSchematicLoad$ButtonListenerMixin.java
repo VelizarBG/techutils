@@ -5,11 +5,11 @@ import dev.kikugie.techutils.config.LitematicConfigs;
 import dev.kikugie.techutils.util.ItemPredicateUtils;
 import fi.dy.masa.litematica.gui.GuiSchematicLoad;
 import fi.dy.masa.litematica.schematic.LitematicaSchematic;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.BlockPos;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -33,33 +33,33 @@ public class GuiSchematicLoad$ButtonListenerMixin {
 		var accessedSchematic = ((LitematicaSchematicAccessor) schematic);
 		var containers = accessedSchematic.getBlockContainers();
 		var blockEntities = accessedSchematic.getTileEntities();
-		Map<String, Map<BlockPos, NbtCompound>> processedBlockEntities = new HashMap<>();
-		var lookup = gui.mc.world.getRegistryManager();
+		Map<String, Map<BlockPos, CompoundTag>> processedBlockEntities = new HashMap<>();
+		var registryAccess = gui.mc.level.registryAccess();
 
 		for (var regionEntry : blockEntities.entrySet()) {
 			String region = regionEntry.getKey();
 			var regionBlockEntities = regionEntry.getValue();
 			var regionContainer = containers.get(region);
-			Map<BlockPos, NbtCompound> processedRegionBlockEntities = new HashMap<>();
+			Map<BlockPos, CompoundTag> processedRegionBlockEntities = new HashMap<>();
 
 			for (var entry : regionBlockEntities.entrySet()) {
 				BlockPos blockEntityPos = entry.getKey();
 				var blockEntityNbt = entry.getValue();
-				var blockEntity = BlockEntity.createFromNbt(
+				var blockEntity = BlockEntity.loadStatic(
 					blockEntityPos,
 					regionContainer.get(blockEntityPos.getX(), blockEntityPos.getY(), blockEntityPos.getZ()),
 					blockEntityNbt,
-					lookup
+					registryAccess
 				);
 
-				if (blockEntity instanceof Inventory inventory) {
-					for (int i = 0; i < inventory.size(); i++) {
-						var stack = inventory.getStack(i);
+				if (blockEntity instanceof Container inventory) {
+					for (int i = 0; i < inventory.getContainerSize(); i++) {
+						var stack = inventory.getItem(i);
 						if (ItemPredicateUtils.getPlaceholder(stack) instanceof ItemStack placeholder) {
-							inventory.setStack(i, placeholder);
+							inventory.setItem(i, placeholder);
 						}
 					}
-					processedRegionBlockEntities.put(blockEntityPos, blockEntity.createNbtWithIdentifyingData(lookup));
+					processedRegionBlockEntities.put(blockEntityPos, blockEntity.saveWithFullMetadata(registryAccess));
 				} else {
 					processedRegionBlockEntities.put(blockEntityPos, blockEntityNbt);
 				}

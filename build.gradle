@@ -62,6 +62,10 @@ repositories {
 		name = "sonatype-oss-snapshots1"
 		url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
 	}
+	maven {
+		name = 'ParchmentMC'
+		url = 'https://maven.parchmentmc.org'
+	}
 }
 
 afterEvaluate {
@@ -88,7 +92,10 @@ dependencies {
 
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	mappings loom.layered {
+		officialMojangMappings { nameSyntheticMembers = true }
+		parchment("org.parchmentmc.data:parchment-${project.parchment_version}@zip")
+	}
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	modImplementation include("com.github.Chocohead:Fabric-ASM:v${project.fabric_asm_version}")

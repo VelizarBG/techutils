@@ -3,7 +3,7 @@ package dev.kikugie.techutils.mixin.mod.litematica;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay;
 import fi.dy.masa.litematica.render.RenderUtils;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -23,7 +23,7 @@ public class RenderUtilsMixin {
 		),
 		at = @At(
 			value = "INVOKE",
-			target = "Lfi/dy/masa/litematica/render/RenderUtils;renderInventoryOverlay(Lnet/minecraft/client/gui/DrawContext;Lfi/dy/masa/litematica/util/BlockInfoAlignment;Lfi/dy/masa/malilib/gui/LeftRight;ILnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/client/MinecraftClient;)I",
+			target = "Lfi/dy/masa/litematica/render/RenderUtils;renderInventoryOverlay(Lnet/minecraft/client/gui/GuiGraphics;Lfi/dy/masa/litematica/util/BlockInfoAlignment;Lfi/dy/masa/malilib/gui/LeftRight;ILnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/client/Minecraft;)I",
 			ordinal = 0
 		)
 	)

@@ -5,11 +5,11 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.Slot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -22,32 +22,32 @@ import static dev.kikugie.techutils.feature.containerscan.verifier.InventoryOver
 
 @Mixin(value = fi.dy.masa.malilib.render.InventoryOverlay.class)
 public class InventoryOverlayMixin {
-	@WrapOperation(method = "renderInventoryStacks(Lnet/minecraft/client/gui/DrawContext;Lfi/dy/masa/malilib/render/InventoryOverlay$InventoryRenderType;Lnet/minecraft/inventory/Inventory;IIIIILjava/util/Set;Lnet/minecraft/client/MinecraftClient;DD)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/inventory/Inventory;getStack(I)Lnet/minecraft/item/ItemStack;"))
-	private static ItemStack shareSlotIndex(Inventory instance, int i, Operation<ItemStack> original, @Share("slotIndex") LocalIntRef slotIndex) {
+	@WrapOperation(method = "renderInventoryStacks(Lnet/minecraft/client/gui/GuiGraphics;Lfi/dy/masa/malilib/render/InventoryOverlay$InventoryRenderType;Lnet/minecraft/world/Container;IIIIILjava/util/Set;Lnet/minecraft/client/Minecraft;DD)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/Container;getItem(I)Lnet/minecraft/world/item/ItemStack;"))
+	private static ItemStack shareSlotIndex(Container instance, int i, Operation<ItemStack> original, @Share("slotIndex") LocalIntRef slotIndex) {
 		slotIndex.set(i);
 		return original.call(instance, i);
 	}
 
-	@WrapOperation(method = "renderInventoryStacks(Lnet/minecraft/client/gui/DrawContext;Lfi/dy/masa/malilib/render/InventoryOverlay$InventoryRenderType;Lnet/minecraft/inventory/Inventory;IIIIILjava/util/Set;Lnet/minecraft/client/MinecraftClient;DD)V", at = @At(value = "INVOKE", target = "Lfi/dy/masa/malilib/render/InventoryOverlay;renderStackAt(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/item/ItemStack;FFFLnet/minecraft/client/MinecraftClient;DD)V"))
-	private static void drawOverlay(DrawContext drawContext, ItemStack stack, float x, float y, float scale, MinecraftClient mc, double mouseX, double mouseY, Operation<Void> original, @Share("slotIndex") LocalIntRef slotIndex) {
+	@WrapOperation(method = "renderInventoryStacks(Lnet/minecraft/client/gui/GuiGraphics;Lfi/dy/masa/malilib/render/InventoryOverlay$InventoryRenderType;Lnet/minecraft/world/Container;IIIIILjava/util/Set;Lnet/minecraft/client/Minecraft;DD)V", at = @At(value = "INVOKE", target = "Lfi/dy/masa/malilib/render/InventoryOverlay;renderStackAt(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/world/item/ItemStack;FFFLnet/minecraft/client/Minecraft;DD)V"))
+	private static void drawOverlay(GuiGraphics graphics, ItemStack stack, float x, float y, float scale, Minecraft mc, double mouseX, double mouseY, Operation<Void> original, @Share("slotIndex") LocalIntRef slotIndex) {
 		if (infoOverlayInstance != null) {
-			stack = infoOverlayInstance.drawStackInternal(drawContext, new Slot(null, slotIndex.get(), (int) x, (int) y), stack);
+			stack = infoOverlayInstance.drawStackInternal(graphics, new Slot(null, slotIndex.get(), (int) x, (int) y), stack);
 
-			original.call(drawContext, stack, x, y, scale, mc, mouseX, mouseY);
+			original.call(graphics, stack, x, y, scale, mc, mouseX, mouseY);
 
 			infoOverlayInstance.finalizeDrawStackInternal();
 		} else {
-			original.call(drawContext, stack, x, y, scale, mc, mouseX, mouseY);
+			original.call(graphics, stack, x, y, scale, mc, mouseX, mouseY);
 		}
 	}
 
-	@Redirect(method = "renderInventoryStacks(Lnet/minecraft/client/gui/DrawContext;Lfi/dy/masa/malilib/render/InventoryOverlay$InventoryRenderType;Lnet/minecraft/inventory/Inventory;IIIIILjava/util/Set;Lnet/minecraft/client/MinecraftClient;DD)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;isEmpty()Z"))
+	@Redirect(method = "renderInventoryStacks(Lnet/minecraft/client/gui/GuiGraphics;Lfi/dy/masa/malilib/render/InventoryOverlay$InventoryRenderType;Lnet/minecraft/world/Container;IIIIILjava/util/Set;Lnet/minecraft/client/Minecraft;DD)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z"))
 	private static boolean allowDrawingEmptySlots(ItemStack instance) {
 		return false;
 	}
 
-	@WrapWithCondition(method = "renderInventoryStacks(Lnet/minecraft/client/gui/DrawContext;Lfi/dy/masa/malilib/render/InventoryOverlay$InventoryRenderType;Lnet/minecraft/inventory/Inventory;IIIIILjava/util/Set;Lnet/minecraft/client/MinecraftClient;DD)V", at = @At(value = "INVOKE", target = "Lfi/dy/masa/malilib/render/InventoryOverlay;renderStackToolTipStyled(Lnet/minecraft/client/gui/DrawContext;IILnet/minecraft/item/ItemStack;Lnet/minecraft/client/MinecraftClient;)V"))
-	private static boolean delayRenderingHoveredStack(DrawContext drawContext, int x, int y, ItemStack stack, MinecraftClient mc) {
+	@WrapWithCondition(method = "renderInventoryStacks(Lnet/minecraft/client/gui/GuiGraphics;Lfi/dy/masa/malilib/render/InventoryOverlay$InventoryRenderType;Lnet/minecraft/world/Container;IIIIILjava/util/Set;Lnet/minecraft/client/Minecraft;DD)V", at = @At(value = "INVOKE", target = "Lfi/dy/masa/malilib/render/InventoryOverlay;renderStackToolTipStyled(Lnet/minecraft/client/gui/GuiGraphics;IILnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/Minecraft;)V"))
+	private static boolean delayRenderingHoveredStack(GuiGraphics graphics, int x, int y, ItemStack stack, Minecraft mc) {
 		if (delayRenderingHoveredStack) {
 			hoveredStackToRender = stack;
 			return false;
@@ -55,7 +55,7 @@ public class InventoryOverlayMixin {
 		return true;
 	}
 
-	@Inject(method = "renderInventoryStacks(Lnet/minecraft/client/gui/DrawContext;Lfi/dy/masa/malilib/render/InventoryOverlay$InventoryRenderType;Lnet/minecraft/inventory/Inventory;IIIIILjava/util/Set;Lnet/minecraft/client/MinecraftClient;DD)V", at = @At("RETURN"))
+	@Inject(method = "renderInventoryStacks(Lnet/minecraft/client/gui/GuiGraphics;Lfi/dy/masa/malilib/render/InventoryOverlay$InventoryRenderType;Lnet/minecraft/world/Container;IIIIILjava/util/Set;Lnet/minecraft/client/Minecraft;DD)V", at = @At("RETURN"))
 	private static void cleanUp(CallbackInfo ci) {
 		infoOverlayInstance = null;
 	}

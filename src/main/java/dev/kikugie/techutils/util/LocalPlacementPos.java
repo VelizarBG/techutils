@@ -6,8 +6,8 @@ import fi.dy.masa.litematica.schematic.placement.SchematicPlacement;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
 import fi.dy.masa.litematica.util.PositionUtils;
 import fi.dy.masa.litematica.util.SchematicUtils;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.BlockPos;
 
 import java.util.List;
 import java.util.Objects;
@@ -22,7 +22,7 @@ import java.util.Optional;
  */
 public record LocalPlacementPos(BlockPos pos, String region, SchematicPlacement placement) {
 	public static BlockPos getWorldPos(BlockPos pos, String region, SchematicPlacement placement) {
-		return placement.getOrigin().add(PositionUtils.getTransformedPlacementPosition(pos, placement, Objects.requireNonNull(placement.getRelativeSubRegionPlacement(region))));
+		return placement.getOrigin().offset(PositionUtils.getTransformedPlacementPosition(pos, placement, Objects.requireNonNull(placement.getRelativeSubRegionPlacement(region))));
 	}
 
 	public static Optional<LocalPlacementPos> get(BlockPos worldPos) {

@@ -12,7 +12,7 @@ import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import dev.kikugie.techutils.feature.containerscan.verifier.SchematicVerifierExtension;
 import fi.dy.masa.litematica.gui.GuiSchematicVerifier;
 import fi.dy.masa.litematica.schematic.verifier.SchematicVerifier;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -64,7 +64,7 @@ public abstract class GuiSchematicVerifierMixin {
 		)
 	)
 	private String provideEnglishTranslationForWrongInventoriesWithoutDiff(String key, Object[] args, Operation<String> original) {
-		if (MinecraftClient.getInstance().getLanguageManager().getLanguage().startsWith("en_")) {
+		if (Minecraft.getInstance().getLanguageManager().getSelected().startsWith("en_")) {
 			return "Wrong: §4Inventory: %s§r, §cBlock: %s§r, §6State: %s§r, §bMissing: %s§r, §dExtra: %s§r"
 				.formatted(ObjectArrays.concat(((SchematicVerifierExtension) verifier).getWrongInventoriesCount$techutils(), args));
 		}
@@ -83,7 +83,7 @@ public abstract class GuiSchematicVerifierMixin {
 		)
 	)
 	private String provideEnglishTranslationForWrongInventoriesWithDiff(String key, Object[] args, Operation<String> original) {
-		if (MinecraftClient.getInstance().getLanguageManager().getLanguage().startsWith("en_")) {
+		if (Minecraft.getInstance().getLanguageManager().getSelected().startsWith("en_")) {
 			return "Wrong: §4Inventory: %s§r, §cBlock: %s§r, §6State: %s§r, §bMissing: %s§r, §dExtra: %s§r, §eDifferent: %s§r"
 				.formatted(ObjectArrays.concat(((SchematicVerifierExtension) verifier).getWrongInventoriesCount$techutils(), args));
 		}

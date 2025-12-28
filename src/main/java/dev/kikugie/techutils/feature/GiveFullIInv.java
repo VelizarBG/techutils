@@ -3,24 +3,23 @@ package dev.kikugie.techutils.feature;
 import dev.kikugie.techutils.TechUtilsMod;
 import dev.kikugie.techutils.config.MiscConfigs;
 import fi.dy.masa.malilib.util.game.BlockUtils;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockEntityProvider;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.ShulkerBoxBlock;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.ChestBlockEntity;
-import net.minecraft.block.entity.LootableContainerBlockEntity;
-import net.minecraft.block.entity.ShulkerBoxBlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.BundleContentsComponent;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.*;
-import net.minecraft.text.Text;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ShulkerBoxBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
+import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.BundleContents;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.*;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -38,23 +37,23 @@ public class GiveFullIInv {
 	private static final Supplier<Boolean> SAFETY = MiscConfigs.FILL_SAFETY::getBooleanValue;
 
 	public static boolean onKeybind() {
-		ClientPlayerEntity player = MinecraftClient.getInstance().player;
+		LocalPlayer player = Minecraft.getInstance().player;
 		assert player != null;
 		if (!player.isCreative()) {
 			INSTANCE.sendError("not_creative_enough");
 			return false;
 		}
 
-		ItemStack mainHand = player.getMainHandStack();
-		ItemStack offHand = player.getOffHandStack();
+		ItemStack mainHand = player.getMainHandItem();
+		ItemStack offHand = player.getOffhandItem();
 
 		Optional<ItemStack> result = get(mainHand, offHand);
 		if (result.isEmpty())
 			return false;
 		int selectedSlot = player.getInventory().getSelectedSlot();
-		player.getInventory().setStack(selectedSlot, result.get());
-		Objects.requireNonNull(MinecraftClient.getInstance().interactionManager).clickCreativeStack(result.get(), 36 + selectedSlot);
-		player.playerScreenHandler.sendContentUpdates();
+		player.getInventory().setItem(selectedSlot, result.get());
+		Objects.requireNonNull(Minecraft.getInstance().gameMode).handleCreativeModeItemAdd(result.get(), 36 + selectedSlot);
+		player.inventoryMenu.broadcastChanges();
 		return true;
 	}
 
@@ -63,23 +62,23 @@ public class GiveFullIInv {
 	}
 
 	public static ItemStack fillShulker(ItemStack stack, @Nullable DyeColor color) {
-		Block shulker = ShulkerBoxBlock.get(color);
-		ShulkerBoxBlockEntity box = new ShulkerBoxBlockEntity(BlockPos.ORIGIN, shulker.getDefaultState());
+		Block shulker = ShulkerBoxBlock.getBlockByColor(color);
+		ShulkerBoxBlockEntity box = new ShulkerBoxBlockEntity(BlockPos.ZERO, shulker.defaultBlockState());
 		return fillLootable(stack, shulker.asItem(), box);
 	}
 
 	public static ItemStack fillChest(ItemStack stack) {
 		Block chest = Blocks.CHEST;
-		ChestBlockEntity box = new ChestBlockEntity(BlockPos.ORIGIN, chest.getDefaultState());
+		ChestBlockEntity box = new ChestBlockEntity(BlockPos.ZERO, chest.defaultBlockState());
 		return fillLootable(stack, chest.asItem(), box);
 	}
 
-	public static ItemStack fillLootable(ItemStack stack, Item item, LootableContainerBlockEntity lootable) {
-		for (int i = 0; i < lootable.size(); i++) {
-			lootable.setStack(i, stack);
+	public static ItemStack fillLootable(ItemStack stack, Item item, RandomizableContainerBlockEntity lootable) {
+		for (int i = 0; i < lootable.getContainerSize(); i++) {
+			lootable.setItem(i, stack);
 		}
-		ItemStack container = item.getDefaultStack();
-		BlockUtils.setStackNbt(container, lootable, MinecraftClient.getInstance().world.getRegistryManager());
+		ItemStack container = item.getDefaultInstance();
+		BlockUtils.setStackNbt(container, lootable, Minecraft.getInstance().level.registryAccess());
 		return container;
 	}
 
@@ -88,29 +87,29 @@ public class GiveFullIInv {
 		for (int i = 0; i < MiscConfigs.BUNDLE_FILL.getIntegerValue(); i++) {
 			stacks.add(stack.copy());
 		}
-		ItemStack bundle = Items.BUNDLE.getDefaultStack();
-		BundleContentsComponent.Builder builder = new BundleContentsComponent.Builder(new BundleContentsComponent(stacks));
-		bundle.set(DataComponentTypes.BUNDLE_CONTENTS, builder.build());
+		ItemStack bundle = Items.BUNDLE.getDefaultInstance();
+		BundleContents.Mutable builder = new BundleContents.Mutable(new BundleContents(stacks));
+		bundle.set(DataComponents.BUNDLE_CONTENTS, builder.toImmutable());
 		return bundle;
 	}
 
 	@SuppressWarnings("DataFlowIssue")
 	public static boolean containerHasItems(ItemStack container) {
-		if (container.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof BlockEntityProvider provider) {
-			var container_data = container.get(DataComponentTypes.CONTAINER);
-			if (container_data == null)
+		if (container.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof EntityBlock provider) {
+			var containerData = container.get(DataComponents.CONTAINER);
+			if (containerData == null)
 				return false;
 
-			BlockEntity blockEntity = provider.createBlockEntity(BlockPos.ORIGIN, blockItem.getBlock().getDefaultState());
-			blockEntity.readComponents(container);
-			if (blockEntity instanceof Inventory inventory)
+			BlockEntity blockEntity = provider.newBlockEntity(BlockPos.ZERO, blockItem.getBlock().defaultBlockState());
+			blockEntity.applyComponentsFromItemStack(container);
+			if (blockEntity instanceof Container inventory)
 				return !inventory.isEmpty();
 		}
 		return false;
 	}
 
 	public static boolean bundleHasItems(ItemStack bundle) {
-		return BundleItem.getAmountFilled(bundle) > 0;
+		return BundleItem.getFullnessDisplay(bundle) > 0;
 	}
 
 	private static String generateCommand(ItemStack stack, int slot) {
@@ -132,7 +131,7 @@ public class GiveFullIInv {
 			sendError("nested_stack");
 			return Optional.empty();
 		}
-		ItemStack fullStack = mainHand.copyWithCount(mainHand.getMaxCount());
+		ItemStack fullStack = mainHand.copyWithCount(mainHand.getMaxStackSize());
 		return Optional.of(handleOffHand(offHand, stack -> fillShulker(stack, null)).apply(fullStack));
 	}
 
@@ -155,10 +154,10 @@ public class GiveFullIInv {
 		if (offHand.isEmpty())
 			return fallback;
 		// Item has a corresponding block entity
-		if (offHand.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof BlockEntityProvider provider) {
-			BlockEntity blockEntity = provider.createBlockEntity(BlockPos.ORIGIN, blockItem.getBlock().getDefaultState());
+		if (offHand.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof EntityBlock provider) {
+			BlockEntity blockEntity = provider.newBlockEntity(BlockPos.ZERO, blockItem.getBlock().defaultBlockState());
 			// Block entity is a container
-			if (blockEntity instanceof LootableContainerBlockEntity lootable)
+			if (blockEntity instanceof RandomizableContainerBlockEntity lootable)
 				return stack -> fillLootable(stack, blockItem, lootable);
 		}
 		if (offHand.getItem() instanceof BundleItem) {
@@ -169,9 +168,9 @@ public class GiveFullIInv {
 	}
 
 	private void sendError(String key) {
-		Text message = Text.translatable("techutils.feature.givefullinv." + key).formatted(Formatting.DARK_RED);
-		if (MinecraftClient.getInstance() != null && MinecraftClient.getInstance().player != null)
-			MinecraftClient.getInstance().player.sendMessage(message, true);
+		Component message = Component.translatable("techutils.feature.givefullinv." + key).withStyle(ChatFormatting.DARK_RED);
+		if (Minecraft.getInstance() != null && Minecraft.getInstance().player != null)
+			Minecraft.getInstance().player.displayClientMessage(message, true);
 		else
 			TechUtilsMod.LOGGER.warn(message.getString());
 	}

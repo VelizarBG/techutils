@@ -9,22 +9,22 @@ import dev.kikugie.techutils.util.ItemPredicateUtils;
 import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.malilib.util.WorldUtils;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.render.state.ItemGuiElementRenderState;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.ScreenHandlerProvider;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.CraftingResultInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.predicate.item.ItemPredicate;
-import net.minecraft.screen.ScreenHandlerFactory;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.render.state.GuiItemRenderState;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.ResultContainer;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.world.inventory.MenuConstructor;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -39,7 +39,7 @@ public class InventoryOverlay {
 	public static ItemStack hoveredStackToRender;
 	public static boolean delayRenderingHoveredStack = false;
 	public static boolean isRenderingTransparentItem = false;
-	public static Set<ItemGuiElementRenderState> transparentItemStates = new ReferenceOpenHashSet<>();
+	public static Set<GuiItemRenderState> transparentItemStates = new ReferenceOpenHashSet<>();
 	@Nullable
 	private static InventoryOverlay instance = null;
 	@Nullable
@@ -60,15 +60,15 @@ public class InventoryOverlay {
 	}
 
 	public static void onContainerClick(BlockHitResult hitResult) {
-		lastClickedPos = hitResult.getBlockPos().toImmutable();
+		lastClickedPos = hitResult.getBlockPos().immutable();
 	}
 
 	public static void onScreenPostContainerClick() {
 		if (lastClickedPos == null)
 			return;
 		BlockPos pos = lastClickedPos;
-		World world = WorldUtils.getBestWorld(MinecraftClient.getInstance());
-		if (!(ContainerUtils.validateContainer(world, pos, world.getBlockState(pos)).orElse(null) instanceof ScreenHandlerFactory))
+		Level level = WorldUtils.getBestWorld(Minecraft.getInstance());
+		if (!(ContainerUtils.validateContainer(level, pos, level.getBlockState(pos)).orElse(null) instanceof MenuConstructor))
 			return;
 		if (InteractionHandler.contains(pos))
 			return;
@@ -76,11 +76,11 @@ public class InventoryOverlay {
 	}
 
 	public static Optional<InventoryOverlay> get(BlockPos pos, boolean queueInteraction) {
-		World world = Objects.requireNonNull(WorldUtils.getBestWorld(MinecraftClient.getInstance()));
+		Level level = Objects.requireNonNull(WorldUtils.getBestWorld(Minecraft.getInstance()));
 
-		long tick = world.getTime();
-		BlockState state = world.getBlockState(pos);
-		Optional<Inventory> inventory = ContainerUtils.validateContainer(world, pos, state);
+		long tick = level.getGameTime();
+		BlockState state = level.getBlockState(pos);
+		Optional<Container> inventory = ContainerUtils.validateContainer(level, pos, state);
 		if (inventory.isEmpty())
 			return Optional.empty();
 
@@ -92,22 +92,22 @@ public class InventoryOverlay {
 			@Override
 			public boolean accept(Screen screen) {
 				Slot validSlot = null;
-				for (Slot slot : ((ScreenHandlerProvider<?>) screen).getScreenHandler().slots) {
-					if (!(slot.inventory instanceof PlayerInventory)) {
+				for (Slot slot : ((MenuAccess<?>) screen).getMenu().slots) {
+					if (!(slot.container instanceof Inventory)) {
 						validSlot = slot;
 						break;
 					}
 				}
 				if (validSlot != null)
-					entry.setWorldInventory(validSlot.inventory);
+					entry.setWorldInventory(validSlot.container);
 				return true;
 			}
 		});
 		return Optional.of(new InventoryOverlay(entry));
 	}
 
-	public static ItemStack drawStack(DrawContext context, Slot slot, ItemStack stack) {
-		return instance == null ? stack : instance.drawStackInternal(context, slot, stack);
+	public static ItemStack drawStack(GuiGraphics graphics, Slot slot, ItemStack stack) {
+		return instance == null ? stack : instance.drawStackInternal(graphics, slot, stack);
 	}
 
 	public static void finalizeDrawStack() {
@@ -117,22 +117,22 @@ public class InventoryOverlay {
 
 	public static boolean setSlotToSchematicItem(Slot slot) {
 		if (!LitematicConfigs.INVENTORY_SCREEN_OVERLAY.getBooleanValue()
-			|| instance == null || slot.inventory instanceof PlayerInventory
+			|| instance == null || slot.container instanceof Inventory
 		)
 			return false;
 
-		var schematicItem = instance.entry.getPlacementInventory().get().getStack(slot.getIndex());
-		slot.setStack(ItemPredicateUtils.getPlaceholder(schematicItem) instanceof ItemStack placeholder
+		var schematicItem = instance.entry.getPlacementInventory().get().getItem(slot.getContainerSlot());
+		slot.setByPlayer(ItemPredicateUtils.getPlaceholder(schematicItem) instanceof ItemStack placeholder
 			? placeholder
 			: schematicItem
 		);
 		return true;
 	}
 
-	public ItemStack drawStackInternal(DrawContext context, Slot slot, ItemStack stack) {
+	public ItemStack drawStackInternal(GuiGraphics graphics, Slot slot, ItemStack stack) {
 		if (!LitematicConfigs.INVENTORY_SCREEN_OVERLAY.getBooleanValue()
-			|| slot.inventory instanceof PlayerInventory
-			|| slot.inventory instanceof CraftingResultInventory
+			|| slot.container instanceof Inventory
+			|| slot.container instanceof ResultContainer
 			|| this.entry.getWorldInventory().isEmpty()
 		)
 			return stack;
@@ -140,7 +140,7 @@ public class InventoryOverlay {
 		if (LitematicConfigs.FORCE_SCHEMATIC_ITEM_OVERLAY.getBooleanValue())
 			stack = ItemStack.EMPTY;
 
-		ItemStack schematicStack = this.entry.getPlacementInventory().get().getStack(slot.getIndex());
+		ItemStack schematicStack = this.entry.getPlacementInventory().get().getItem(slot.getContainerSlot());
 		if (schematicStack == null) {
 			schematicStack = ItemStack.EMPTY;
 		}
@@ -173,17 +173,17 @@ public class InventoryOverlay {
 		}
 
 		if (color != 0)
-			drawBackground(context, slot, color);
+			drawBackground(graphics, slot, color);
 
 		isRenderingTransparentItem = shouldRenderItemAsTransparent;
 
 		return stack;
 	}
 
-	public void drawBackground(DrawContext context, Slot slot, int color) {
+	public void drawBackground(GuiGraphics graphics, Slot slot, int color) {
 		int x = slot.x;
 		int y = slot.y;
-		context.fill(x, y, x + 16, y + 16, color);
+		graphics.fill(x, y, x + 16, y + 16, color);
 	}
 
 	public void finalizeDrawStackInternal() {

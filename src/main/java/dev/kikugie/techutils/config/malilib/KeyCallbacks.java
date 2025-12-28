@@ -10,9 +10,9 @@ import fi.dy.masa.malilib.hotkeys.IHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.BlockMirror;
-import net.minecraft.util.BlockRotation;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
 
 import java.util.function.Function;
 
@@ -25,17 +25,17 @@ public class KeyCallbacks {
 			SchematicPlacement placement = DataManager.getSchematicPlacementManager().getSelectedSchematicPlacement();
 			if (placement == null)
 				return false;
-			placement.setRotation(placement.getRotation().rotate(BlockRotation.CLOCKWISE_90), InGameNotifier.INSTANCE);
+			placement.setRotation(placement.getRotation().getRotated(Rotation.CLOCKWISE_90), InGameNotifier.INSTANCE);
 			return true;
 		});
 		ConditionalCallback.set(LitematicConfigs.MIRROR_PLACEMENT, action -> {
 			SchematicPlacement placement = DataManager.getSchematicPlacementManager().getSelectedSchematicPlacement();
 			if (placement == null)
 				return false;
-			BlockMirror mirror = switch (placement.getMirror()) {
-				case NONE -> BlockMirror.LEFT_RIGHT;
-				case LEFT_RIGHT -> BlockMirror.FRONT_BACK;
-				case FRONT_BACK -> BlockMirror.NONE;
+			Mirror mirror = switch (placement.getMirror()) {
+				case NONE -> Mirror.LEFT_RIGHT;
+				case LEFT_RIGHT -> Mirror.FRONT_BACK;
+				case FRONT_BACK -> Mirror.NONE;
 			};
 			placement.setMirror(mirror, InGameNotifier.INSTANCE);
 			return true;
@@ -48,7 +48,7 @@ public class KeyCallbacks {
 			return true;
 		});
 		ConditionalCallback.set(MiscConfigs.OPEN_CONFIG, action -> {
-			MinecraftClient.getInstance().setScreen(new ConfigGui());
+			Minecraft.getInstance().setScreen(new ConfigGui());
 			return true;
 		});
 		ConditionalCallback.set(MiscConfigs.GIVE_FULL_INV, action -> GiveFullIInv.onKeybind());

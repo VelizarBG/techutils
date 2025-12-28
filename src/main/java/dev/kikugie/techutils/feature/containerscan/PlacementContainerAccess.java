@@ -3,16 +3,16 @@ package dev.kikugie.techutils.feature.containerscan;
 import dev.kikugie.techutils.TechUtilsMod;
 import dev.kikugie.techutils.util.ContainerUtils;
 import dev.kikugie.techutils.util.LocalPlacementPos;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ChestBlock;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.enums.ChestType;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.inventory.DoubleInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.properties.ChestType;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.CompoundContainer;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -28,7 +28,7 @@ public final class PlacementContainerAccess {
 		return new LinkedStorageEntry(worldPos, null, getSchematicInventory(worldPos, worldState).orElse(null));
 	}
 
-	public static LinkedStorageEntry getEntry(BlockPos worldPos, BlockState worldState, SimpleInventory worldInventory) {
+	public static LinkedStorageEntry getEntry(BlockPos worldPos, BlockState worldState, SimpleContainer worldInventory) {
 		return new LinkedStorageEntry(worldPos, worldInventory, getSchematicInventory(worldPos, worldState).orElse(null));
 	}
 
@@ -37,31 +37,31 @@ public final class PlacementContainerAccess {
 	 *
 	 * @param worldPos   position in the world
 	 * @param worldState block state of the given position
-	 * @return {@link SimpleInventory} with schematic items if its present
+	 * @return {@link SimpleContainer} with schematic items if its present
 	 * @see LocalPlacementPos
 	 */
-	public static Optional<SimpleInventory> getSchematicInventory(BlockPos worldPos, BlockState worldState) {
+	public static Optional<SimpleContainer> getSchematicInventory(BlockPos worldPos, BlockState worldState) {
 		ChestType type = getChestType(worldState);
 		if (type == ChestType.SINGLE)
 			return getSchematicInventoryInternal(worldPos, worldState);
 
 		// Double chest handling
-		BlockPos adjacentChest = worldPos.add(ChestBlock.getFacing(worldState).getVector());
-		assert MinecraftClient.getInstance().world != null;
-		BlockState adjacentState = MinecraftClient.getInstance().world.getBlockState(adjacentChest);
+		BlockPos adjacentChest = worldPos.offset(ChestBlock.getConnectedDirection(worldState).getUnitVec3i());
+		assert Minecraft.getInstance().level != null;
+		BlockState adjacentState = Minecraft.getInstance().level.getBlockState(adjacentChest);
 
-		Optional<SimpleInventory> opt1 = getSchematicInventoryInternal(worldPos, worldState);
-		Optional<SimpleInventory> opt2 = getSchematicInventoryInternal(adjacentChest, adjacentState);
+		Optional<SimpleContainer> opt1 = getSchematicInventoryInternal(worldPos, worldState);
+		Optional<SimpleContainer> opt2 = getSchematicInventoryInternal(adjacentChest, adjacentState);
 		if (opt1.isEmpty() && opt2.isEmpty())
 			return Optional.empty();
-		SimpleInventory chest1 = opt1.orElse(new SimpleInventory(27));
-		SimpleInventory chest2 = opt2.orElse(new SimpleInventory(27));
+		SimpleContainer chest1 = opt1.orElse(new SimpleContainer(27));
+		SimpleContainer chest2 = opt2.orElse(new SimpleContainer(27));
 
 		return type == ChestType.RIGHT ? Optional.of(merge(chest1, chest2)) : Optional.of(merge(chest2, chest1));
 	}
 
-	public static Optional<SimpleInventory> getSchematicInventoryInternal(BlockPos worldPos, BlockState worldState) {
-		Optional<Inventory> dummyInv = ContainerUtils.validateContainer(worldPos, worldState);
+	public static Optional<SimpleContainer> getSchematicInventoryInternal(BlockPos worldPos, BlockState worldState) {
+		Optional<Container> dummyInv = ContainerUtils.validateContainer(worldPos, worldState);
 		// World block is not a container
 		if (dummyInv.isEmpty())
 			return Optional.empty();
@@ -72,10 +72,10 @@ public final class PlacementContainerAccess {
 			return Optional.empty();
 
 		LocalPlacementPos placementPos = optionalPos.get();
-		Optional<Inventory> schemInv = ContainerUtils.validateContainer(worldPos, placementPos.blockState());
+		Optional<Container> schemInv = ContainerUtils.validateContainer(worldPos, placementPos.blockState());
 		// Schematic and world blocks don't match
 		if (schemInv.isEmpty()
-			|| dummyInv.get().size() != schemInv.get().size()
+			|| dummyInv.get().getContainerSize() != schemInv.get().getContainerSize()
 			|| !(schemInv.get() instanceof BlockEntity schemBE)
 			|| !(dummyInv.get() instanceof BlockEntity dummyBE)
 			|| schemBE.getType() != dummyBE.getType()
@@ -86,11 +86,11 @@ public final class PlacementContainerAccess {
 		return Optional.ofNullable(getItems(placementPos));
 	}
 
-	private static SimpleInventory merge(Inventory first, Inventory second) {
-		DoubleInventory combined = new DoubleInventory(first, second);
-		SimpleInventory inventory = new SimpleInventory(combined.size());
-		for (int i = 0; i < combined.size(); i++) {
-			inventory.setStack(i, combined.getStack(i));
+	private static SimpleContainer merge(Container first, Container second) {
+		CompoundContainer combined = new CompoundContainer(first, second);
+		SimpleContainer inventory = new SimpleContainer(combined.getContainerSize());
+		for (int i = 0; i < combined.getContainerSize(); i++) {
+			inventory.setItem(i, combined.getItem(i));
 		}
 		return inventory;
 	}
@@ -105,39 +105,39 @@ public final class PlacementContainerAccess {
 	private static ChestType getChestType(BlockState state) {
 		if (!(state.getBlock() instanceof ChestBlock))
 			return ChestType.SINGLE;
-		return state.get(ChestBlock.CHEST_TYPE);
+		return state.getValue(ChestBlock.TYPE);
 	}
 
 	@Nullable
-	private static SimpleInventory getItems(LocalPlacementPos placementPos) {
-		Map<BlockPos, NbtCompound> blockEntities = placementPos.placement().getSchematic()
+	private static SimpleContainer getItems(LocalPlacementPos placementPos) {
+		Map<BlockPos, CompoundTag> blockEntities = placementPos.placement().getSchematic()
 			.getBlockEntityMapForRegion(placementPos.region());
 		// No block entity map for the region. Shouldn't be possible unless it was manually modified
 		if (blockEntities == null)
 			return null;
 
-		NbtCompound nbt = blockEntities.get(placementPos.pos());
+		CompoundTag nbt = blockEntities.get(placementPos.pos());
 		// No such entry in the map
 		if (nbt == null)
 			return null;
 
-		var lookup = MinecraftClient.getInstance().world.getRegistryManager();
-		var blockEntity = BlockEntity.createFromNbt(
+		var registryAccess = Minecraft.getInstance().level.registryAccess();
+		var blockEntity = BlockEntity.loadStatic(
 			placementPos.pos(),
 			placementPos.blockState(),
 			nbt,
-			lookup
+			registryAccess
 		);
 
-		if (!(blockEntity instanceof Inventory schematicInventory)) {
+		if (!(blockEntity instanceof Container schematicInventory)) {
 			return null;
 		}
 
-		var inventory = new SimpleInventory(schematicInventory.size());
+		var inventory = new SimpleContainer(schematicInventory.getContainerSize());
 
-		for (int i = 0; i < inventory.size(); i++) {
-			var stack = schematicInventory.getStack(i);
-			inventory.setStack(i, stack);
+		for (int i = 0; i < inventory.getContainerSize(); i++) {
+			var stack = schematicInventory.getItem(i);
+			inventory.setItem(i, stack);
 		}
 
 		return inventory;

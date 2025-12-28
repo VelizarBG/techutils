@@ -2,8 +2,8 @@ package dev.kikugie.techutils.mixin.mod.litematica;
 
 import fi.dy.masa.litematica.schematic.LitematicaSchematic;
 import fi.dy.masa.litematica.schematic.container.LitematicaBlockStateContainer;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.gen.Accessor;
@@ -16,9 +16,9 @@ public interface LitematicaSchematicAccessor {
 	Map<String, LitematicaBlockStateContainer> getBlockContainers();
 
 	@Accessor("tileEntities")
-	Map<String, Map<BlockPos, NbtCompound>> getTileEntities();
+	Map<String, Map<BlockPos, CompoundTag>> getTileEntities();
 
 	@Mutable
 	@Accessor("tileEntities")
-	void setTileEntities(Map<String, Map<BlockPos, NbtCompound>> tileEntities);
+	void setTileEntities(Map<String, Map<BlockPos, CompoundTag>> tileEntities);
 }

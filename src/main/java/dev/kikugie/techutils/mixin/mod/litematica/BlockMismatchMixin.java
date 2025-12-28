@@ -4,8 +4,8 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.kikugie.techutils.feature.containerscan.verifier.BlockMismatchExtension;
 import fi.dy.masa.litematica.schematic.verifier.SchematicVerifier.BlockMismatch;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.inventory.Inventory;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.Container;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(value = BlockMismatch.class, remap = false)
-public class BlockMismatchMixin<InventoryBE extends BlockEntity & Inventory> implements BlockMismatchExtension<InventoryBE> {
+public class BlockMismatchMixin<InventoryBE extends BlockEntity & Container> implements BlockMismatchExtension<InventoryBE> {
 	@Unique @Nullable
 	private Pair<InventoryBE, InventoryBE> inventories;
 

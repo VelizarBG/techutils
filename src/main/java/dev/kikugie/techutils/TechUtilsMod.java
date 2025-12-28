@@ -17,8 +17,8 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.TranslatableTextContent;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,7 @@ import java.util.function.Consumer;
 
 public class TechUtilsMod implements ClientModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger(Reference.MOD_ID);
-	public static final List<Consumer<MinecraftClient>> QUEUED_END_CLIENT_TICK_TASKS = new ArrayList<>();
+	public static final List<Consumer<Minecraft>> QUEUED_END_CLIENT_TICK_TASKS = new ArrayList<>();
 
 	@Override
 	public void onInitializeClient() {
@@ -37,16 +37,16 @@ public class TechUtilsMod implements ClientModInitializer {
 		registerCommands();
 		registerWorldEditSync();
 
-		ClientTickEvents.START_WORLD_TICK.register(world -> InteractionHandler.tick(world.getTime()));
+		ClientTickEvents.START_WORLD_TICK.register(world -> InteractionHandler.tick(world.getGameTime()));
 //        WorldRenderEvents.END.register(Remderer::onRender);
 		ItemTooltipCallback.EVENT.register((stack, tooltipContext, tooltipType, lines) -> {
 			if (ItemPredicateUtils.isPredicate(stack)) {
-				lines.removeIf(text -> text.getContent() instanceof TranslatableTextContent ttc && ttc.getKey().contains("op_warning"));
+				lines.removeIf(text -> text.getContents() instanceof TranslatableContents contents && contents.getKey().contains("op_warning"));
 				lines.addAll(ItemPredicateUtils.getPrettyPredicate(stack));
 				return;
 			}
-			MinecraftClient client = MinecraftClient.getInstance();
-			if (client.currentScreen instanceof GuiSchematicVerifier) {
+			Minecraft client = Minecraft.getInstance();
+			if (client.screen instanceof GuiSchematicVerifier) {
 				stack = SchematicVerifierExtension.addErrorLines(stack, lines);
 			}
 			if (LitematicConfigs.VERIFY_ITEM_COMPONENTS.getBooleanValue()) {

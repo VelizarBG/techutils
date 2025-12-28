@@ -6,10 +6,10 @@ import dev.kikugie.techutils.config.WorldEditConfigs;
 import dev.kikugie.techutils.util.ResponseMuffler;
 import dev.kikugie.techutils.util.ValidBox;
 import fi.dy.masa.litematica.data.DataManager;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.command.CommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -19,7 +19,7 @@ import java.util.Optional;
 public class WorldEditSync {
 	@Nullable
 	private static WorldEditSync instance = null;
-	private final MinecraftClient client = MinecraftClient.getInstance();
+	private final Minecraft client = Minecraft.getInstance();
 	private final WorldEditNetworkHandler handler = WorldEditNetworkHandler.initHandler();
 	private ValidBox lastBox;
 	private int syncTick = 0;
@@ -48,7 +48,7 @@ public class WorldEditSync {
 		this.worldEditConnected = true;
 	}
 
-	public void onCommandTreePacket(CommandDispatcher<CommandSource> dispatcher) {
+	public void onCommandTreePacket(CommandDispatcher<SharedSuggestionProvider> dispatcher) {
 		this.commandAvailable = dispatcher.findNode(List.of("/pos1")) != null;
 	}
 
@@ -56,7 +56,7 @@ public class WorldEditSync {
 		if (!WorldEditConfigs.DISABLE_UPDATES.getBooleanValue())
 			return;
 		ResponseMuffler.scheduleMute("Side effect \"Neighbors\".+");
-		Objects.requireNonNull(this.client.getNetworkHandler()).sendChatCommand("/perf neighbors off");
+		Objects.requireNonNull(this.client.getConnection()).sendCommand("/perf neighbors off");
 		TechUtilsMod.LOGGER.debug("Turning off WorldEdit neighbor updates");
 	}
 
@@ -85,17 +85,17 @@ public class WorldEditSync {
 		updateRegion(box);
 		TechUtilsMod.LOGGER.debug("WorldEdit synced!");
 		if (WorldEditConfigs.WE_SYNC_FEEDBACK.getBooleanValue())
-			this.client.player.sendMessage(Text.translatable("techutils.feature.worldeditsync.success").formatted(Formatting.GREEN), true);
+			this.client.player.displayClientMessage(Component.translatable("techutils.feature.worldeditsync.success").withStyle(ChatFormatting.GREEN), true);
 	}
 
 	private void updateRegion(ValidBox box) {
 		ResponseMuffler.scheduleMute("(\\w+ position set to \\(.+\\).)|(Position already set.)");
-		this.client.getNetworkHandler().sendChatCommand(String.format("/pos1 %d,%d,%d",
+		this.client.getConnection().sendCommand(String.format("/pos1 %d,%d,%d",
 			box.getPos1().getX(),
 			box.getPos1().getY(),
 			box.getPos1().getZ()));
 		ResponseMuffler.scheduleMute("(\\w+ position set to \\(.+\\).)|(Position already set.)");
-		this.client.getNetworkHandler().sendChatCommand(String.format("/pos2 %d,%d,%d",
+		this.client.getConnection().sendCommand(String.format("/pos2 %d,%d,%d",
 			box.getPos2().getX(),
 			box.getPos2().getY(),
 			box.getPos2().getZ()));
