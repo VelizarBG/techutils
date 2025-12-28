@@ -9,9 +9,9 @@ import dev.kikugie.techutils.util.ItemPredicateUtils;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;

@@ -1,28 +1,27 @@
 package dev.kikugie.techutils.test;
 
+import dev.kikugie.techutils.config.MiscConfigs;
 import dev.kikugie.techutils.feature.GiveFullIInv;
-import net.minecraft.server.Bootstrap;
 import net.minecraft.SharedConstants;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.server.Bootstrap;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.item.component.BundleContents;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
-
-import dev.kikugie.techutils.config.MiscConfigs;
 
 public class GiveFullInvTest {
     @BeforeAll

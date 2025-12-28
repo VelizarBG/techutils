@@ -6,10 +6,10 @@ import dev.kikugie.techutils.config.WorldEditConfigs;
 import dev.kikugie.techutils.util.ResponseMuffler;
 import dev.kikugie.techutils.util.ValidBox;
 import fi.dy.masa.litematica.data.DataManager;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
-import net.minecraft.ChatFormatting;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;

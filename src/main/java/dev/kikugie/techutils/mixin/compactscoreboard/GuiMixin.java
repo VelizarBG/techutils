@@ -1,11 +1,11 @@
 package dev.kikugie.techutils.mixin.compactscoreboard;
 
 import dev.kikugie.techutils.config.MiscConfigs;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.network.chat.numbers.NumberFormatType;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.numbers.NumberFormatType;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;

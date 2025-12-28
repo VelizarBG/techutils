@@ -2,9 +2,9 @@ package dev.kikugie.techutils.feature.containerscan;
 
 import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.malilib.util.data.Color4f;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;

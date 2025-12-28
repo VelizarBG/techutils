@@ -3,9 +3,9 @@ package dev.kikugie.techutils.feature.worldedit;
 import dev.kikugie.techutils.TechUtilsMod;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.core.BlockPos;
 import org.enginehub.worldeditcui.protocol.CUIPacket;
 
 import java.util.Optional;
