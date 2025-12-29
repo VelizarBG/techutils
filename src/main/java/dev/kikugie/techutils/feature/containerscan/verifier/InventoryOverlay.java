@@ -7,15 +7,18 @@ import dev.kikugie.techutils.feature.containerscan.handlers.InteractionHandler;
 import dev.kikugie.techutils.util.ContainerUtils;
 import dev.kikugie.techutils.util.ItemPredicateUtils;
 import fi.dy.masa.litematica.config.Configs;
+import fi.dy.masa.litematica.gui.GuiSchematicVerifier;
 import fi.dy.masa.malilib.util.WorldUtils;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.render.state.GuiItemRenderState;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.MenuConstructor;
@@ -27,6 +30,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -127,6 +131,21 @@ public class InventoryOverlay {
 			: schematicItem
 		);
 		return true;
+	}
+
+	public static void addSpecialTooltipModifications(ItemStack stack, List<Component> lines) {
+		if (ItemPredicateUtils.isPredicate(stack)) {
+			lines.removeIf(text -> text.getContents() instanceof TranslatableContents contents && contents.getKey().contains("op_warning"));
+			lines.addAll(ItemPredicateUtils.getPrettyPredicate(stack));
+			return;
+		}
+		Minecraft client = Minecraft.getInstance();
+		if (client.screen instanceof GuiSchematicVerifier) {
+			stack = SchematicVerifierExtension.addErrorLines(stack, lines);
+		}
+		if (LitematicConfigs.VERIFY_ITEM_COMPONENTS.getBooleanValue()) {
+			lines.addAll(ContainerUtils.getFormattedComponents(stack));
+		}
 	}
 
 	public ItemStack drawStackInternal(GuiGraphics graphics, Slot slot, ItemStack stack) {

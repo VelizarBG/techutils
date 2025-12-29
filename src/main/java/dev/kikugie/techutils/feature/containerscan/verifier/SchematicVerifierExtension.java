@@ -37,10 +37,10 @@ public interface SchematicVerifierExtension {
 		if (nbt.isEmpty()) {
 			stack.remove(DataComponents.CUSTOM_DATA);
 			for (Component line : lines) {
-				if (line.getContents() instanceof TranslatableContents ttc
-					&& ttc.getKey().equals("item.components")
+				if (line.getContents() instanceof TranslatableContents contents
+					&& contents.getKey().equals("item.components")
 				) {
-					Object[] args = ttc.getArgs();
+					Object[] args = contents.getArgs();
 					args[0] = ((int) args[0]) - 1;
 				}
 			}

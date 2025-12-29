@@ -23,12 +23,6 @@ public class ItemPredicateCommand {
 
 	public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext ignoredContext) {
 		dispatcher.register(literal("itempredicate")
-			.then(literal("audit")
-				.executes(ctx -> {
-					MixinEnvironment.getCurrentEnvironment().audit();
-					return 1;
-				})
-			)
 			.then(literal("give")
 				.executes(context -> {
 					var player = context.getSource().getPlayer();

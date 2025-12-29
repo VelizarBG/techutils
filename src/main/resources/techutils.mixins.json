@@ -20,7 +20,6 @@
         "mod.litematica.GuiSchematicVerifierAccessor",
         "mod.litematica.GuiSchematicVerifierMixin",
         "mod.litematica.GuiSchematicVerifierMixin$ButtonListenerMixin",
-        "mod.litematica.InventoryOverlayMixin",
         "mod.litematica.ItemUtilsAccessor",
         "mod.litematica.LitematicaSchematicAccessor",
         "mod.litematica.OverlayRendererMixin",
@@ -29,6 +28,8 @@
         "mod.litematica.SchematicVerifierMixin",
         "mod.litematica.WidgetListSchematicVerificationResultsMixin",
         "mod.litematica.WidgetSchematicVerificationResultMixin",
+        "mod.malilib.GuiContextMixin",
+        "mod.malilib.InventoryOverlayMixin",
         "worldeditsync.ClientPacketListenerMixin",
         "worldeditsync.FabricCUIPacketHandler"
     ],

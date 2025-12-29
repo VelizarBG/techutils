@@ -6,6 +6,7 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.numbers.NumberFormatType;
+import org.jspecify.annotations.NullMarked;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -14,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import java.text.NumberFormat;
 import java.util.Locale;
 
+@NullMarked
 @Mixin(Gui.class)
 public class GuiMixin {
 	@Unique

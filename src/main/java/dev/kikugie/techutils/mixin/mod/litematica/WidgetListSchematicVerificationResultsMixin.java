@@ -8,7 +8,7 @@ import fi.dy.masa.litematica.gui.widgets.WidgetSchematicVerificationResult;
 import fi.dy.masa.litematica.schematic.verifier.SchematicVerifier;
 import fi.dy.masa.malilib.gui.interfaces.ISelectionListener;
 import fi.dy.masa.malilib.gui.widgets.WidgetListBase;
-import net.minecraft.client.gui.GuiGraphics;
+import fi.dy.masa.malilib.render.GuiContext;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -39,7 +39,7 @@ public abstract class WidgetListSchematicVerificationResultsMixin extends Widget
 	}
 
 	@Inject(method = "drawContents", at = @At("RETURN"))
-	private void tryDrawSelectedWrongInventory(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
+	private void tryDrawSelectedWrongInventory(GuiContext ctx, int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
 		var selectedInventoryMismatches = getSelectedInventoryMismatches();
 		if (selectedInventoryMismatches.isEmpty()) {
 			return;
@@ -50,7 +50,7 @@ public abstract class WidgetListSchematicVerificationResultsMixin extends Widget
 				&& bme.blockMismatch != null && bme.blockMismatch.mismatchType == WRONG_INVENTORIES
 			)
 			.max(Comparator.comparingInt(w -> selectedInventoryMismatches.indexOf(w.getEntry().blockMismatch)))
-			.ifPresent(w -> w.postRenderHovered(graphics, mouseX, mouseY, true));
+			.ifPresent(w -> w.postRenderHovered(ctx, mouseX, mouseY, true));
 	}
 
 	@Unique

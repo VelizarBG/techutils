@@ -5,7 +5,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.enginehub.worldeditcui.protocol.CUIPacket;
 
 import java.util.Optional;
@@ -16,7 +16,7 @@ import java.util.Optional;
  * If channel has already been registered by another mod, it leeches packets from it instead.
  */
 public class WorldEditNetworkHandler {
-	public static final ResourceLocation CHANNEL = ResourceLocation.fromNamespaceAndPath("worldedit", "cui");
+	public static final Identifier CHANNEL = Identifier.fromNamespaceAndPath("worldedit", "cui");
 	private static final int PROTOCOL = 4;
 	private static WorldEditNetworkHandler instance;
 	public final WorldEditStorage storage;

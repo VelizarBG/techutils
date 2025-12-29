@@ -2,7 +2,6 @@ package dev.kikugie.techutils.feature.containerscan.verifier;
 
 import dev.kikugie.techutils.util.ItemPredicateUtils;
 import net.minecraft.client.GameNarrator;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -12,8 +11,10 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.NullMarked;
 import org.lwjgl.glfw.GLFW;
 
+@NullMarked
 public class ItemPredicateEntryScreen extends Screen {
 	private static final Component TITLE = Component.translatable("item_predicate_entry_screen.title");
 	private static final Component INPUT_TEXT = Component.translatable("item_predicate_entry_screen.input");
@@ -76,9 +77,9 @@ public class ItemPredicateEntryScreen extends Screen {
 	}
 
 	@Override
-	public void resize(Minecraft client, int width, int height) {
+	public void resize(int width, int height) {
 		String string = this.consoleCommandTextField.getValue();
-		this.init(client, width, height);
+		this.init(width, height);
 		this.consoleCommandTextField.setValue(string);
 	}
 

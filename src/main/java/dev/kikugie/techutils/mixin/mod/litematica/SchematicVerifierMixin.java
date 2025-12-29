@@ -20,7 +20,7 @@ import fi.dy.masa.malilib.util.WorldUtils;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.ChatFormatting;
-import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
@@ -134,8 +134,8 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 			{
 				IntBoundingBox bb = volumeEntry.getValue();
 
-				minY = Math.min(bb.minY, minY);
-				maxY = Math.max(bb.maxY, maxY);
+				minY = Math.min(bb.minY(), minY);
+				maxY = Math.max(bb.maxY(), maxY);
 			}
 
 			if (eds.hasServuxServer())

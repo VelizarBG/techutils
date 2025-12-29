@@ -1,7 +1,7 @@
 package dev.kikugie.techutils.util;
 
 import fi.dy.masa.litematica.util.InventoryUtils;
-import fi.dy.masa.malilib.render.InventoryOverlay;
+import fi.dy.masa.malilib.render.InventoryOverlayContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -35,7 +35,7 @@ public class ContainerUtils {
 	public static Optional<Container> validateContainer(Level level, BlockPos pos, BlockState state) {
 		if (state.getBlock() instanceof EntityBlock provider) {
 			BlockEntity blockEntity;
-			if (level != null && InventoryUtils.getTargetInventory(level, pos) instanceof InventoryOverlay.Context ctx && ctx.be() instanceof BlockEntity be) {
+			if (level != null && InventoryUtils.getTargetInventory(level, pos) instanceof InventoryOverlayContext ctx && ctx.be() instanceof BlockEntity be) {
 				blockEntity = be;
 			} else {
 				blockEntity = provider.newBlockEntity(pos, state);

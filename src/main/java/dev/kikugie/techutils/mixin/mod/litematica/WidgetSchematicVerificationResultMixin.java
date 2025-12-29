@@ -10,12 +10,15 @@ import fi.dy.masa.litematica.render.RenderUtils;
 import fi.dy.masa.litematica.util.BlockInfoAlignment;
 import fi.dy.masa.malilib.gui.LeftRight;
 import fi.dy.masa.malilib.gui.widgets.WidgetListEntrySortable;
+import fi.dy.masa.malilib.render.GuiContext;
 import fi.dy.masa.malilib.render.InventoryOverlay;
+import fi.dy.masa.malilib.render.InventoryOverlay.InventoryProperties;
+import fi.dy.masa.malilib.render.InventoryOverlayContext;
+import fi.dy.masa.malilib.render.InventoryOverlayType;
 import fi.dy.masa.malilib.util.GuiUtils;
+import fi.dy.masa.malilib.util.data.DataBlockUtils;
+import fi.dy.masa.malilib.util.data.tag.converter.DataConverterNbt;
 import fi.dy.masa.malilib.util.game.BlockUtils;
-import fi.dy.masa.malilib.util.nbt.NbtBlockUtils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
 import net.minecraft.world.level.Level;
@@ -48,8 +51,8 @@ public abstract class WidgetSchematicVerificationResultMixin<InventoryBE extends
 	@Unique
 	private dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay infoOverlay;
 
-	@WrapWithCondition(method = "postRenderHovered", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/gui/widgets/WidgetSchematicVerificationResult$BlockMismatchInfo;render(Lnet/minecraft/client/gui/GuiGraphics;IILnet/minecraft/client/Minecraft;)V", remap = true))
-	private boolean renderInventoryOverlayIfNecessary(WidgetSchematicVerificationResult.BlockMismatchInfo instance, GuiGraphics graphics, int x, int y, Minecraft mc, GuiGraphics unused, int mouseX, int mouseY, boolean selected) {
+	@WrapWithCondition(method = "postRenderHovered", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/gui/widgets/WidgetSchematicVerificationResult$BlockMismatchInfo;render(Lfi/dy/masa/malilib/render/GuiContext;II)V", remap = true))
+	private boolean renderInventoryOverlayIfNecessary(WidgetSchematicVerificationResult.BlockMismatchInfo instance, GuiContext ctx, int x, int y, GuiContext unused, int mouseX, int mouseY, boolean selected) {
 		//noinspection unchecked
 		var inventories = mismatchEntry.blockMismatch == null ? null : ((BlockMismatchExtension<InventoryBE>) mismatchEntry.blockMismatch).getInventories$techutils();
 		if (inventories == null) {
@@ -73,16 +76,16 @@ public abstract class WidgetSchematicVerificationResultMixin<InventoryBE extends
 
 		delayRenderingHoveredStack = true;
 
-		renderInventoryOverlay(BlockInfoAlignment.CENTER, LeftRight.LEFT, 0, mc, graphics, left, mouseX, mouseY);
+		renderInventoryOverlay(ctx, BlockInfoAlignment.CENTER, LeftRight.LEFT, 0, left, mouseX, mouseY);
 
 		infoOverlayInstance = infoOverlay;
-		renderInventoryOverlay(BlockInfoAlignment.CENTER, LeftRight.RIGHT, 0, mc, graphics, right, mouseX, mouseY);
+		renderInventoryOverlay(ctx, BlockInfoAlignment.CENTER, LeftRight.RIGHT, 0, right, mouseX, mouseY);
 		infoOverlayInstance = null;
 
 		delayRenderingHoveredStack = false;
 
 		if (hoveredStackToRender != null) {
-			InventoryOverlay.renderStackToolTipStyled(graphics, mouseX, mouseY, hoveredStackToRender, mc);
+			InventoryOverlay.renderStackToolTipStyled(ctx, mouseX, mouseY, hoveredStackToRender);
 			hoveredStackToRender = null;
 		}
 
@@ -90,41 +93,41 @@ public abstract class WidgetSchematicVerificationResultMixin<InventoryBE extends
 	}
 
 	/**
-	 * Basically a clone of {@link RenderUtils#renderInventoryOverlay(GuiGraphics, BlockInfoAlignment, LeftRight, int, Level, BlockPos, Minecraft)}
+	 * Basically a clone of {@link RenderUtils#renderInventoryOverlay(GuiContext, BlockInfoAlignment, LeftRight, int, Level, BlockPos)}
 	 */
 	@Unique
-	private int renderInventoryOverlay(BlockInfoAlignment align, LeftRight side, int offY,
-									   Minecraft mc, GuiGraphics drawContext, InventoryBE inventoryBE,
+	private int renderInventoryOverlay(GuiContext guiCtx, BlockInfoAlignment align, LeftRight side,
+									   int offY, InventoryBE inventoryBE,
 									   double mouseX, double mouseY)
 	{
-		var nbt = inventoryBE.saveWithFullMetadata(mc.level.registryAccess());
-		InventoryOverlay.Context ctx = new InventoryOverlay.Context(InventoryOverlay.getBestInventoryType(inventoryBE, nbt), inventoryBE, inventoryBE, null, nbt, null);
+		var nbt = DataConverterNbt.fromVanillaCompound(inventoryBE.saveWithFullMetadata(mc.level.registryAccess()));
+		InventoryOverlayContext ctx = new InventoryOverlayContext(InventoryOverlay.getBestInventoryType(inventoryBE, nbt), inventoryBE, inventoryBE, null, nbt, null);
 
 		if (ctx.inv() != null)
 		{
-			final InventoryOverlay.InventoryProperties props = InventoryOverlay.getInventoryPropsTemp(ctx.type(), ctx.inv().getContainerSize());
+			final InventoryProperties props = InventoryOverlay.getInventoryPropsTemp(ctx.type(), ctx.inv().getContainerSize());
 
 //            Litematica.LOGGER.error("render(): type [{}], inv [{}], be [{}], nbt [{}]", ctx.type().name(), ctx.inv().size(), ctx.be() != null, ctx.nbt() != null ? ctx.nbt().getString("id") : new NbtCompound());
 
 			// Try to draw Locked Slots on Crafter Grid
-			if (ctx.type() == InventoryOverlay.InventoryRenderType.CRAFTER)
+			if (ctx.type() == InventoryOverlayType.CRAFTER)
 			{
 				Set<Integer> disabledSlots = new HashSet<>();
 
-				if (ctx.nbt() != null && !ctx.nbt().isEmpty())
+				if (ctx.data() != null && !ctx.data().isEmpty())
 				{
-					disabledSlots = NbtBlockUtils.getDisabledSlotsFromNbt(ctx.nbt());
+					disabledSlots = DataBlockUtils.getDisabledSlots(ctx.data());
 				}
 				else if (ctx.be() instanceof CrafterBlockEntity cbe)
 				{
 					disabledSlots = BlockUtils.getDisabledSlots(cbe);
 				}
 
-				return renderInventoryOverlay(drawContext, side, offY, ctx.inv(), ctx.type(), props, disabledSlots, mc, align, mouseX, mouseY);
+				return renderInventoryOverlay(guiCtx, align, side, offY, ctx.inv(), ctx.type(), props, disabledSlots, mouseX, mouseY);
 			}
 			else
 			{
-				return renderInventoryOverlay(drawContext, side, offY, ctx.inv(), ctx.type(), props, Set.of(), mc, align, mouseX, mouseY);
+				return renderInventoryOverlay(guiCtx, align, side, offY, ctx.inv(), ctx.type(), props, Set.of(), mouseX, mouseY);
 			}
 		}
 
@@ -132,10 +135,10 @@ public abstract class WidgetSchematicVerificationResultMixin<InventoryBE extends
 	}
 
 	/**
-	 * Basically a clone of {@link RenderUtils#renderInventoryOverlay(GuiGraphics, BlockInfoAlignment, LeftRight, int, Container, InventoryOverlay.InventoryRenderType, InventoryOverlay.InventoryProperties, Set, Minecraft)}
+	 * Basically a clone of {@link RenderUtils#renderInventoryOverlay(GuiContext, BlockInfoAlignment, LeftRight, int, Container, InventoryOverlayType, InventoryProperties, Set)}
 	 */
 	@Unique
-	private static int renderInventoryOverlay(GuiGraphics drawContext, LeftRight side, int offY, Container inv, InventoryOverlay.InventoryRenderType type, InventoryOverlay.InventoryProperties props, Set<Integer> disabledSlots, Minecraft mc, BlockInfoAlignment align,
+	private static int renderInventoryOverlay(GuiContext ctx, BlockInfoAlignment align, LeftRight side, int offY, Container inv, InventoryOverlayType type, InventoryProperties props, Set<Integer> disabledSlots,
 											  double mouseX, double mouseY)
 	{
 		int xInv = 0;
@@ -157,10 +160,8 @@ public abstract class WidgetSchematicVerificationResultMixin<InventoryBE extends
 		if      (side == LeftRight.LEFT)  { xInv -= (props.width / 2 + 4); }
 		else if (side == LeftRight.RIGHT) { xInv += (props.width / 2 + 4); }
 
-//		fi.dy.masa.malilib.render.RenderUtils.color(1f, 1f, 1f, 1f);
-
-		InventoryOverlay.renderInventoryBackground(drawContext, type, xInv, yInv, props.slotsPerRow, props.totalSlots, mc);
-		InventoryOverlay.renderInventoryStacks(drawContext, type, inv, xInv + props.slotOffsetX, yInv + props.slotOffsetY, props.slotsPerRow, 0, inv.getContainerSize(), disabledSlots, mc, mouseX, mouseY);
+		InventoryOverlay.renderInventoryBackground(ctx, type, xInv, yInv, props.slotsPerRow, props.totalSlots);
+		InventoryOverlay.renderInventoryStacks(ctx, type, inv, xInv + props.slotOffsetX, yInv + props.slotOffsetY, props.slotsPerRow, 0, inv.getContainerSize(), disabledSlots, mouseX, mouseY);
 
         return props.height + compatShift;
 	}

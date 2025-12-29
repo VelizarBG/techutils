@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.DestFactor;
+import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay;
 import net.minecraft.client.gui.Font;
@@ -52,9 +53,9 @@ public class GuiGraphicsMixin {
 		original.call(pipeline, textureSetup, x1, y1, x2, y2, color, color2);
 	}
 
-	@WrapMethod(method = "submitBlit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lcom/mojang/blaze3d/textures/GpuTextureView;IIIIFFFFI)V")
+	@WrapMethod(method = "submitBlit")
 	private void quadWithTransparency(
-		RenderPipeline pipeline, GpuTextureView texture, int x1, int y1, int x2, int y2, float u1, float u2, float v1, float v2, int color, Operation<Void> original
+		RenderPipeline pipeline, GpuTextureView atlasTexture, GpuSampler sampler, int x0, int y0, int x1, int y1, float u0, float u1, float v0, float v1, int color, Operation<Void> original
 	) {
 		if (InventoryOverlay.isRenderingTransparentItem) {
 			if (pipeline.getBlendFunction().isPresent() && pipeline.getBlendFunction().get().destAlpha() == DestFactor.ZERO) {
@@ -64,7 +65,7 @@ public class GuiGraphicsMixin {
 			}
 		}
 
-		original.call(pipeline, texture, x1, y1, x2, y2, u1, u2, v1, v2, color);
+		original.call(pipeline, atlasTexture, sampler, x0, y0, x1, y1, u0, u1, v0, v1, color);
 	}
 
 	@WrapMethod(method = "drawString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/util/FormattedCharSequence;IIIZ)V")

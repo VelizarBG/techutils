@@ -14,8 +14,8 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(MultiPlayerGameMode.class)
 public class MultiPlayerGameModeMixin {
 	@Definition(id = "InteractionResult", type = InteractionResult.class)
-	@Definition(id = "getValue", method = "Lorg/apache/commons/lang3/mutable/MutableObject;getValue()Ljava/lang/Object;")
-	@Expression("return @((InteractionResult) ?.getValue())")
+	@Definition(id = "get", method = "Lorg/apache/commons/lang3/mutable/MutableObject;get()Ljava/lang/Object;")
+	@Expression("return @((InteractionResult) ?.get())")
 	@ModifyExpressionValue(method = "useItemOn", at = @At("MIXINEXTRAS:EXPRESSION"))
 	private InteractionResult recordContainer(InteractionResult original, @Local(argsOnly = true) BlockHitResult hitResult) {
 		if (original.consumesAction()) {

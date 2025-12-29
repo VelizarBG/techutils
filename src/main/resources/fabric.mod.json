@@ -35,7 +35,7 @@
         "fabric_api_build_version": "${fabric_api_version}"
     },
     "depends": {
-        "fabricloader": ">=0.17.0",
+        "fabricloader": "${loader_dependency}",
         "minecraft": "${minecraft_dependency}",
         "malilib": "${malilib_dependency}",
         "litematica": "${litematica_dependency}"

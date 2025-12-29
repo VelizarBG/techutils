@@ -111,11 +111,16 @@ dependencies {
 	testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
 }
 
+test {
+	useJUnitPlatform()
+}
+
 processResources {
 	inputs.property "version", project.mod_version
 	inputs.property "id", project.mod_id
 	inputs.property "name", project.mod_name
 	inputs.property "minecraft_dependency", project.minecraft_dependency
+	inputs.property "loader_dependency", project.loader_dependency
 	inputs.property "malilib_dependency", project.malilib_dependency
 	inputs.property "litematica_dependency", project.litematica_dependency
 	inputs.property "fabric_api_version", project.fabric_api_version
@@ -127,6 +132,7 @@ processResources {
 				"name"					: project.mod_name,
 				"version"				: project.mod_version,
 				"minecraft_dependency"	: project.minecraft_dependency,
+				"loader_dependency" 	: project.loader_dependency,
 				"malilib_dependency"	: project.malilib_dependency,
 				"litematica_dependency"	: project.litematica_dependency,
 				"fabric_api_version"	: project.fabric_api_version,
