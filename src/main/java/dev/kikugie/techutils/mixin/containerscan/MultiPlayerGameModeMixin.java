@@ -1,26 +1,24 @@
 package dev.kikugie.techutils.mixin.containerscan;
 
-import com.llamalad7.mixinextras.expression.Definition;
-import com.llamalad7.mixinextras.expression.Expression;
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.phys.BlockHitResult;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(MultiPlayerGameMode.class)
 public class MultiPlayerGameModeMixin {
-	@Definition(id = "InteractionResult", type = InteractionResult.class)
-	@Definition(id = "get", method = "Lorg/apache/commons/lang3/mutable/MutableObject;get()Ljava/lang/Object;")
-	@Expression("return @((InteractionResult) ?.get())")
-	@ModifyExpressionValue(method = "useItemOn", at = @At("MIXINEXTRAS:EXPRESSION"))
-	private InteractionResult recordContainer(InteractionResult original, @Local(argsOnly = true) BlockHitResult hitResult) {
-		if (original.consumesAction()) {
+	// @WrapMethod ensures we can run after mods which return early via CallbackInfoReturnable
+	@WrapMethod(method = "useItemOn")
+	private InteractionResult recordContainer(LocalPlayer player, InteractionHand hand, BlockHitResult hitResult, Operation<InteractionResult> original) {
+		var result = original.call(player, hand, hitResult);
+		if (result.consumesAction()) {
 			InventoryOverlay.onContainerClick(hitResult);
 		}
-		return original;
+		return result;
 	}
 }
