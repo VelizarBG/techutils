@@ -104,6 +104,10 @@ dependencies {
 	testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
 }
 
+test {
+	useJUnitPlatform()
+}
+
 processResources {
 	inputs.property "version", project.mod_version
 	inputs.property "id", project.mod_id
