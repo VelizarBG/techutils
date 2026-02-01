@@ -1,26 +1,24 @@
 package dev.kikugie.techutils.mixin.containerscan;
 
-import com.llamalad7.mixinextras.expression.Definition;
-import com.llamalad7.mixinextras.expression.Expression;
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(ClientPlayerInteractionManager.class)
 public class ClientPlayerInteractionManagerMixin {
-	@Definition(id = "ActionResult", type = ActionResult.class)
-	@Definition(id = "getValue", method = "Lorg/apache/commons/lang3/mutable/MutableObject;getValue()Ljava/lang/Object;")
-	@Expression("return @((ActionResult) ?.getValue())")
-	@ModifyExpressionValue(method = "interactBlock", at = @At("MIXINEXTRAS:EXPRESSION"))
-	private ActionResult recordContainer(ActionResult original, @Local(argsOnly = true) BlockHitResult hitResult) {
-		if (original.isAccepted()) {
+	// @WrapMethod ensures we can run after mods which return early via CallbackInfoReturnable
+	@WrapMethod(method = "interactBlock")
+	private ActionResult recordContainer(ClientPlayerEntity player, Hand hand, BlockHitResult hitResult, Operation<ActionResult> original) {
+		var result = original.call(player, hand, hitResult);
+		if (result.isAccepted()) {
 			InventoryOverlay.onContainerClick(hitResult);
 		}
-		return original;
+		return result;
 	}
 }
