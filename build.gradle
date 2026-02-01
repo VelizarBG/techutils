@@ -48,7 +48,7 @@ repositories {
 	}
 	maven {
 		name = "Masa Maven"
-		url = "https://masa.dy.fi/maven"
+		url = "https://masa.dy.fi/maven/sakura-ryoko"
 	}
 	maven {
 		name = "TerraformersMC"
@@ -95,9 +95,9 @@ dependencies {
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 	modApi("com.terraformersmc:modmenu:${project.modmenu_version}")
-	modImplementation("com.github.sakura-ryoko:malilib:${project.malilib_version}")
-	modImplementation("com.github.sakura-ryoko:litematica:${project.litematica_version}")
-	modImplementation("com.github.sakura-ryoko:tweakeroo:${project.tweakeroo_version}")
+	modImplementation("fi.dy.masa.malilib:malilib-fabric-${project.malilib_version}")
+	modImplementation("fi.dy.masa.litematica:litematica-fabric-${project.litematica_version}")
+	modImplementation("fi.dy.masa.tweakeroo:tweakeroo-fabric-${project.tweakeroo_version}")
 
 	modImplementation "com.sk89q.worldedit:worldedit-fabric-mc${project.worldedit_version}"
 	modImplementation "org.enginehub.worldeditcui-protocol:worldeditcui-protocol-fabric-mc${project.worldeditcui_protocol_version}"
