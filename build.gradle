@@ -16,9 +16,17 @@ base {
 }
 
 repositories {
-	maven {
-		name = "JitPack"
-		url = "https://jitpack.io"
+	 exclusiveContent {
+		forRepository {
+			maven {
+				name = "JitPack"
+				url = "https://jitpack.io"
+			}
+		}
+		filter {
+			includeGroup "com.github.sakura-ryoko"
+			includeGroup "com.github.Chocohead"
+		}
 	}
 	exclusiveContent {
 		forRepository {
@@ -42,29 +50,61 @@ repositories {
 			includeGroup "maven.modrinth"
 		}
 	}
-	maven {
-		name = "Gradle Plugin Portal"
-		url = "https://plugins.gradle.org/m2/"
+	exclusiveContent {
+		forRepository {
+			maven { // conditional-mixin-fabric required by Litematica
+				name = "FallenBreath Maven"
+				url = "https://maven.fallenbreath.me/releases"
+			}
+		}
+		filter {
+			includeGroup "me.fallenbreath"
+		}
 	}
-	maven {
-		name = "Masa Maven"
-		url = "https://masa.dy.fi/maven"
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = "TerraformersMC"
+				url = "https://maven.terraformersmc.com/releases/"
+			}
+		}
+		filter {
+			includeGroup "com.terraformersmc"
+		}
 	}
-	maven {
-		name = "TerraformersMC"
-		url "https://maven.terraformersmc.com/releases/"
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = "WorldEdit Maven"
+				url = "https://maven.enginehub.org/repo/"
+			}
+		}
+		filter {
+			includeGroupAndSubgroups "com.sk89q"
+			includeGroupAndSubgroups "org.enginehub"
+		}
 	}
-	maven {
-		name = "WorldEdit Maven"
-		url = "https://maven.enginehub.org/repo/"
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = "sonatype-oss-snapshots1"
+				url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+			}
+		}
+		filter {
+			includeGroup "org.vineflower"
+		}
 	}
-	maven { // Vineflower
-		name = "sonatype-oss-snapshots1"
-		url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-	}
-	maven {
-		name = 'ParchmentMC'
-		url = 'https://maven.parchmentmc.org'
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = "ParchmentMC"
+				url = "https://maven.parchmentmc.org"
+			}
+		}
+		filter {
+			includeGroupAndSubgroups "org.parchmentmc"
+		}
 	}
 	maven {
 		name = "Fallen Breath"
