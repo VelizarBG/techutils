@@ -9,6 +9,7 @@ import fi.dy.masa.litematica.util.SchematicUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -26,9 +27,13 @@ public record LocalPlacementPos(BlockPos pos, String region, SchematicPlacement 
 	}
 
 	public static Optional<LocalPlacementPos> get(BlockPos worldPos) {
-		List<SchematicPlacementManager.PlacementPart> parts = DataManager
-			.getSchematicPlacementManager()
-			.getAllPlacementsTouchingChunk(worldPos);
+		SchematicPlacementManager schematicPlacementManager = DataManager.getSchematicPlacementManager();
+		SchematicPlacement selectedPlacement = schematicPlacementManager.getSelectedSchematicPlacement();
+		List<SchematicPlacementManager.PlacementPart> parts = schematicPlacementManager
+			.getAllPlacementsTouchingChunk(worldPos)
+			.stream()
+			.sorted(Comparator.comparing(placementPart -> placementPart.getPlacement() != selectedPlacement))
+			.toList();
 
 		for (SchematicPlacementManager.PlacementPart part : parts) {
 			if (!part.getBox().containsPos(worldPos))
