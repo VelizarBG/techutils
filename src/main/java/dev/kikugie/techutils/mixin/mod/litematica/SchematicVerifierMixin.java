@@ -49,13 +49,7 @@ import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static fi.dy.masa.litematica.schematic.verifier.SchematicVerifier.BlockMismatch;
 import static fi.dy.masa.litematica.schematic.verifier.SchematicVerifier.MismatchRenderPos;
@@ -77,6 +71,8 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 	private final List<BlockPos> wrongInventoriesPositionsClosest = new ArrayList<>();
 	@Unique
 	private final List<BlockMismatch> selectedInventoryMismatches = new ArrayList<>();
+	@Unique
+	private final Set<BlockPos> ignoredInventories = new HashSet<>();
 
 	@Override
 	public List<BlockMismatch> getSelectedInventoryMismatches$techutils() {
@@ -153,6 +149,10 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 
 	@Inject(method = "verifyChunk", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/schematic/verifier/SchematicVerifier;checkBlockStates(IIILnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;)V", remap = true))
 	private void checkInventories(ChunkAccess chunkClient, ChunkAccess chunkSchematic, IntBoundingBox box, CallbackInfoReturnable<Boolean> cir) {
+		if (ignoredInventories.contains(MUTABLE_POS)) {
+			return;
+		}
+
 		var expectedBE = chunkSchematic.getBlockEntity(MUTABLE_POS);
 		var foundBE = chunkClient.getBlockEntity(MUTABLE_POS);
 		if (!(expectedBE instanceof Container expected && foundBE instanceof Container found)
@@ -328,10 +328,16 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 	@ModifyExpressionValue(method = "ignoreStateMismatch(Lfi/dy/masa/litematica/schematic/verifier/SchematicVerifier$BlockMismatch;Z)V", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/schematic/verifier/SchematicVerifier;getMapForMismatchType(Lfi/dy/masa/litematica/schematic/verifier/SchematicVerifier$MismatchType;)Lcom/google/common/collect/ArrayListMultimap;"))
 	private ArrayListMultimap<Pair<BlockState, BlockState>, BlockPos> removeInventoryIfNecessary(ArrayListMultimap<Pair<BlockState, BlockState>, BlockPos> positions, @Local(argsOnly = true) BlockMismatch mismatch) {
 		if (positions == wrongInventoriesPositions) {
+            ignoredInventories.add(positions.get(Pair.of(mismatch.stateExpected, mismatch.stateFound)).getFirst());
 			wrongInventories.remove(((BlockMismatchExtension<?>) mismatch).getInventories$techutils());
 			selectedInventoryMismatches.remove(mismatch);
 		}
 		return positions;
+	}
+
+	@Inject(method = "resetIgnoredStateMismatches", at = @At("HEAD"))
+	private void resetIgnoredInventories(CallbackInfo ci) {
+		ignoredInventories.clear();
 	}
 
 	@Inject(method = "clearData", at = @At("HEAD"))
