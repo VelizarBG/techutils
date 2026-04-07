@@ -25,7 +25,7 @@ public abstract class CrafterScreenMixin extends AbstractContainerScreen<Crafter
 	 * This method complements {@link AbstractContainerScreenMixin#tryDrawTooltipOfSchematicItem(boolean, LocalRef)}
 	 * because without it the "Click to disable slot" tooltip will clash with the forced schematic item tooltip.
 	 */
-	@Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/CrafterScreen;renderTooltip(Lnet/minecraft/client/gui/GuiGraphics;II)V"))
+	@Inject(method = "extractRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;II)V"))
 	private void tryDrawTooltipOfMissingItem(CallbackInfo ci, @Share("didSetItem") LocalBooleanRef didSetItem) {
 		if (hoveredSlot != null && hoveredSlot.getItem().isEmpty()
 			&& InventoryOverlay.setSlotToSchematicItem(hoveredSlot)
@@ -34,7 +34,7 @@ public abstract class CrafterScreenMixin extends AbstractContainerScreen<Crafter
 		}
 	}
 
-	@Inject(method = "render", at = @At("TAIL"))
+	@Inject(method = "extractRenderState", at = @At("TAIL"))
 	private void trySetFocusedSlotBackToEmpty(CallbackInfo ci, @Share("didSetItem") LocalBooleanRef didSetItem) {
 		if (didSetItem.get()) {
 			hoveredSlot.setByPlayer(ItemStack.EMPTY);

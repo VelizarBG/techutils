@@ -2,14 +2,14 @@
     "required": true,
     "minVersion": "0.8",
     "package": "dev.kikugie.techutils.mixin",
-    "compatibilityLevel": "JAVA_21",
+    "compatibilityLevel": "JAVA_25",
     "mixins": [
     ],
     "client": [
         "compactscoreboard.GuiMixin",
         "containerscan.AbstractContainerScreenMixin",
         "containerscan.CrafterScreenMixin",
-        "containerscan.GuiGraphicsMixin",
+        "containerscan.GuiGraphicsExtractorMixin",
         "containerscan.GuiRendererMixin",
         "containerscan.MinecraftMixin",
         "containerscan.MultiPlayerGameModeMixin",
@@ -31,7 +31,7 @@
         "mod.malilib.GuiContextMixin",
         "mod.malilib.InventoryOverlayMixin",
         "worldeditsync.ClientPacketListenerMixin",
-        "worldeditsync.FabricCUIPacketHandler"
+        "worldeditsync.FabricCUIPacketHandlerMixin"
     ],
     "injectors": {
         "defaultRequire": 1,

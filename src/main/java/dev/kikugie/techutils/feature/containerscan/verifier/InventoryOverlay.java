@@ -12,8 +12,8 @@ import fi.dy.masa.malilib.util.WorldUtils;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.render.state.GuiItemRenderState;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.state.gui.GuiItemRenderState;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.core.BlockPos;
@@ -110,7 +110,7 @@ public class InventoryOverlay {
 		return Optional.of(new InventoryOverlay(entry));
 	}
 
-	public static ItemStack drawStack(GuiGraphics graphics, Slot slot, ItemStack stack) {
+	public static ItemStack drawStack(GuiGraphicsExtractor graphics, Slot slot, ItemStack stack) {
 		return instance == null ? stack : instance.drawStackInternal(graphics, slot, stack);
 	}
 
@@ -148,7 +148,7 @@ public class InventoryOverlay {
 		}
 	}
 
-	public ItemStack drawStackInternal(GuiGraphics graphics, Slot slot, ItemStack stack) {
+	public ItemStack drawStackInternal(GuiGraphicsExtractor graphics, Slot slot, ItemStack stack) {
 		if (!LitematicConfigs.INVENTORY_SCREEN_OVERLAY.getBooleanValue()
 			|| slot.container instanceof Inventory
 			|| slot.container instanceof ResultContainer
@@ -199,7 +199,7 @@ public class InventoryOverlay {
 		return stack;
 	}
 
-	public void drawBackground(GuiGraphics graphics, Slot slot, int color) {
+	public void drawBackground(GuiGraphicsExtractor graphics, Slot slot, int color) {
 		int x = slot.x;
 		int y = slot.y;
 		graphics.fill(x, y, x + 16, y + 16, color);

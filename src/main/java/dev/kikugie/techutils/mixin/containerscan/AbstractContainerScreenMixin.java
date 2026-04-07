@@ -6,7 +6,7 @@ import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import dev.kikugie.techutils.config.LitematicConfigs;
 import dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -22,17 +22,17 @@ public class AbstractContainerScreenMixin {
 
 	@Shadow @Nullable protected Slot hoveredSlot;
 
-	@ModifyExpressionValue(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/Slot;getItem()Lnet/minecraft/world/item/ItemStack;", ordinal = 0))
-	private ItemStack injectTransparency(ItemStack stack, @Local(argsOnly = true) GuiGraphics graphics, @Local(argsOnly = true) Slot slot) {
+	@ModifyExpressionValue(method = "extractSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/Slot;getItem()Lnet/minecraft/world/item/ItemStack;", ordinal = 0))
+	private ItemStack injectTransparency(ItemStack stack, @Local(argsOnly = true) GuiGraphicsExtractor graphics, @Local(argsOnly = true) Slot slot) {
 		return InventoryOverlay.drawStack(graphics, slot, stack);
 	}
 
-	@Inject(method = "renderSlot", at = @At("RETURN"))
+	@Inject(method = "extractSlot", at = @At("RETURN"))
 	private void finalizeDraw(CallbackInfo ci) {
 		InventoryOverlay.finalizeDrawStack();
 	}
 
-	@ModifyExpressionValue(method = "renderTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/Slot;hasItem()Z"))
+	@ModifyExpressionValue(method = "extractTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/Slot;hasItem()Z"))
 	private boolean tryDrawTooltipOfSchematicItem(boolean hasStack, @Share("prevItem") LocalRef<ItemStack> prevItemRef) {
 		var prevItem = hoveredSlot.getItem();
 		if ((!hasStack || LitematicConfigs.FORCE_SCHEMATIC_ITEM_OVERLAY.getBooleanValue())
@@ -48,7 +48,7 @@ public class AbstractContainerScreenMixin {
 		return hasStack;
 	}
 
-	@Inject(method = "renderTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/Slot;getItem()Lnet/minecraft/world/item/ItemStack;", shift = At.Shift.AFTER))
+	@Inject(method = "extractTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/Slot;getItem()Lnet/minecraft/world/item/ItemStack;", shift = At.Shift.AFTER))
 	private void trySetFocusedSlotBackToPrev(CallbackInfo ci, @Share("prevItem") LocalRef<ItemStack> prevItemRef) {
 		var prevItem = prevItemRef.get();
 		if (prevItem != null) {

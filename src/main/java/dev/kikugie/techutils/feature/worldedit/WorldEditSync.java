@@ -85,7 +85,7 @@ public class WorldEditSync {
 		updateRegion(box);
 		TechUtilsMod.LOGGER.debug("WorldEdit synced!");
 		if (WorldEditConfigs.WE_SYNC_FEEDBACK.getBooleanValue())
-			this.client.player.displayClientMessage(Component.translatable("techutils.feature.worldeditsync.success").withStyle(ChatFormatting.GREEN), true);
+			this.client.player.sendOverlayMessage(Component.translatable("techutils.feature.worldeditsync.success").withStyle(ChatFormatting.GREEN));
 	}
 
 	private void updateRegion(ValidBox box) {

@@ -32,7 +32,7 @@ public class TechUtilsMod implements ClientModInitializer {
 		registerCommands();
 		registerWorldEditSync();
 
-		ClientTickEvents.START_WORLD_TICK.register(world -> InteractionHandler.tick(world.getGameTime()));
+		ClientTickEvents.START_LEVEL_TICK.register(world -> InteractionHandler.tick(world.getGameTime()));
 //        WorldRenderEvents.END.register(Remderer::onRender);
 		ItemTooltipCallback.EVENT.register((stack, tooltipContext, tooltipType, lines) -> InventoryOverlay.addSpecialTooltipModifications(stack, lines));
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -51,7 +51,7 @@ public class TechUtilsMod implements ClientModInitializer {
 	}
 
 	private void registerWorldEditSync() {
-		ClientTickEvents.START_WORLD_TICK.register(tick -> WorldEditSync.getInstance().ifPresent(WorldEditSync::onTick));
+		ClientTickEvents.START_LEVEL_TICK.register(tick -> WorldEditSync.getInstance().ifPresent(WorldEditSync::onTick));
 		ClientReceiveMessageEvents.ALLOW_GAME.register((message, overlay) -> !ResponseMuffler.test(message.getString()));
 	}
 

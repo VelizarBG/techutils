@@ -6,10 +6,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.Bootstrap;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -43,7 +40,7 @@ public class GiveFullInvTest {
         ItemStack testItem = getTestItem();
         Optional<ItemStack> fullBox = GiveFullIInv.get(testItem, ItemStack.EMPTY);
         Assertions.assertTrue(fullBox.isPresent(), "Failed to insert item in a box");
-        boxOf(testItem.copyWithCount(64), fullBox.get(), null);
+        boxOf(testItem.copyWithCount(64), fullBox.get());
     }
 
     /**
@@ -55,9 +52,9 @@ public class GiveFullInvTest {
     @Test
     public void itemInColoredBox() {
         ItemStack testItem = getTestItem();
-        Optional<ItemStack> fullBox = GiveFullIInv.get(testItem, getEmptyBox(DyeColor.WHITE));
+        Optional<ItemStack> fullBox = GiveFullIInv.get(testItem, getEmptyBox());
         Assertions.assertTrue(fullBox.isPresent(), "Failed to insert item in a box");
-        boxOf(testItem.copyWithCount(64), fullBox.get(), DyeColor.WHITE);
+        boxOf(testItem.copyWithCount(64), fullBox.get());
     }
 
     /**
@@ -134,7 +131,7 @@ public class GiveFullInvTest {
         Optional<ItemStack> fullBox = GiveFullIInv.get(testItem, ItemStack.EMPTY);
         Assertions.assertTrue(fullBox.isPresent(), "Failed to insert item in a box");
 
-        Optional<ItemStack> fullBox2 = GiveFullIInv.get(fullBox.get(), getEmptyBox(null));
+        Optional<ItemStack> fullBox2 = GiveFullIInv.get(fullBox.get(), getEmptyBox());
         Assertions.assertFalse(fullBox2.isPresent(), "Should return no item");
     }
 
@@ -146,7 +143,7 @@ public class GiveFullInvTest {
      */
     @Test
     public void emptyBoxInChest() {
-        ItemStack testItem = getEmptyBox(DyeColor.WHITE);
+        ItemStack testItem = getEmptyBox();
         Optional<ItemStack> fullChest = GiveFullIInv.get(testItem, getEmptyChest());
         Assertions.assertTrue(fullChest.isPresent(), "Failed to insert boxes in a chest");
         chestOf(testItem.copyWithCount(64), fullChest.get());
@@ -160,7 +157,7 @@ public class GiveFullInvTest {
      */
     @Test
     public void emptyBox() {
-        ItemStack testItem = getEmptyBox(DyeColor.WHITE);
+        ItemStack testItem = getEmptyBox();
         Optional<ItemStack> fullChest = GiveFullIInv.get(testItem, ItemStack.EMPTY);
         Assertions.assertTrue(fullChest.isPresent(), "Failed to insert boxes in a chest");
         chestOf(testItem.copyWithCount(64), fullChest.get());
@@ -174,7 +171,7 @@ public class GiveFullInvTest {
      */
     @Test
     public void emptyBoxInBundle() {
-        ItemStack testItem = getEmptyBox(DyeColor.WHITE);
+        ItemStack testItem = getEmptyBox();
         Optional<ItemStack> fullBundle = GiveFullIInv.get(testItem, getEmptyBundle());
         Assertions.assertTrue(fullBundle.isPresent(), "Failed to insert boxes in a bundle");
         bundleOf(testItem.copyWithCount(64), fullBundle.get());
@@ -188,8 +185,8 @@ public class GiveFullInvTest {
      */
     @Test
     public void emptyBoxInBox() {
-        ItemStack testItem = getEmptyBox(DyeColor.WHITE);
-        Optional<ItemStack> fullBox = GiveFullIInv.get(testItem, getEmptyBox(null));
+        ItemStack testItem = getEmptyBox();
+        Optional<ItemStack> fullBox = GiveFullIInv.get(testItem, getEmptyBox());
         Assertions.assertFalse(fullBox.isPresent(), "Should return no item");
     }
 
@@ -213,7 +210,7 @@ public class GiveFullInvTest {
      */
     @Test
     public void noItemWithOffhand() {
-        Optional<ItemStack> fullBox = GiveFullIInv.get(ItemStack.EMPTY, getEmptyBox(null));
+        Optional<ItemStack> fullBox = GiveFullIInv.get(ItemStack.EMPTY, getEmptyBox());
         Assertions.assertFalse(fullBox.isPresent(), "Should return no item");
     }
 
@@ -229,7 +226,7 @@ public class GiveFullInvTest {
         Optional<ItemStack> fullChest = GiveFullIInv.get(testItem, getEmptyChest());
         Assertions.assertTrue(fullChest.isPresent(), "Failed to insert item in a box");
 
-        Optional<ItemStack> fullBox = GiveFullIInv.get(fullChest.get(), getEmptyBox(null));
+        Optional<ItemStack> fullBox = GiveFullIInv.get(fullChest.get(), getEmptyBox());
         Assertions.assertFalse(fullBox.isPresent(), "Should return no item");
     }
 
@@ -265,11 +262,10 @@ public class GiveFullInvTest {
         Assertions.assertFalse(fullBundle.isPresent(), "Should return no item");
     }
 
-    private void boxOf(ItemStack stack, ItemStack box, @Nullable DyeColor color) {
-        Assertions.assertEquals(color, getBoxColor(box.getItem()), "Shulker box color '%s' doesn't match expected '%s'".formatted(getBoxColor(box.getItem()), color));
+    private void boxOf(ItemStack stack, ItemStack box) {
 		Assertions.assertNotNull(box.get(DataComponents.CONTAINER), "Shulker box has no container component");
 
-		ShulkerBoxBlockEntity shulker = new ShulkerBoxBlockEntity(color, BlockPos.ZERO, ShulkerBoxBlock.getBlockByColor(color).defaultBlockState());
+		ShulkerBoxBlockEntity shulker = new ShulkerBoxBlockEntity(null, BlockPos.ZERO, Blocks.SHULKER_BOX.defaultBlockState());
         shulker.applyComponentsFromItemStack(stack);
         for (int i = 0; i < shulker.getContainerSize(); i++) {
             Assertions.assertTrue(ItemStack.matches(stack, shulker.getItem(i)), "Shulker box item '%s' doesn't match expected '%s'".formatted(shulker.getItem(i), stack));
@@ -292,8 +288,8 @@ public class GiveFullInvTest {
 
         Assertions.assertFalse(contents.isEmpty(), "Bundle is empty");
 
-        for (ItemStack item : contents.items()) {
-            Assertions.assertTrue(ItemStack.matches(stack, item), "Bundle item '%s' doesn't match expected '%s'".formatted(item, stack));
+        for (ItemStackTemplate item : contents.items()) {
+            Assertions.assertTrue(ItemStack.matches(stack, item.create()), "Bundle item '%s' doesn't match expected '%s'".formatted(item, stack));
         }
     }
 
@@ -301,8 +297,8 @@ public class GiveFullInvTest {
         return Items.DIAMOND.getDefaultInstance();
     }
 
-    private ItemStack getEmptyBox(@Nullable DyeColor color) {
-        return ShulkerBoxBlock.getColoredItemStack(color);
+    private ItemStack getEmptyBox() {
+        return Items.SHULKER_BOX.getDefaultInstance();
     }
 
     private ItemStack getEmptyChest() {

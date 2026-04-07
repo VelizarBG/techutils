@@ -26,7 +26,7 @@ public class GuiMixin {
 	}
 
 	@SuppressWarnings("unchecked")
-	@ModifyArg(method = "displayScoreboardSidebar(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/world/scores/Objective;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/scores/Objective;numberFormatOrDefault(Lnet/minecraft/network/chat/numbers/NumberFormat;)Lnet/minecraft/network/chat/numbers/NumberFormat;"))
+	@ModifyArg(method = "displayScoreboardSidebar", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/scores/Objective;numberFormatOrDefault(Lnet/minecraft/network/chat/numbers/NumberFormat;)Lnet/minecraft/network/chat/numbers/NumberFormat;"))
 	private <T extends net.minecraft.network.chat.numbers.NumberFormat> T replaceWithCompactFormat(T format) {
 		if (!MiscConfigs.COMPACT_SCOREBOARD.getBooleanValue())
 			return format;

@@ -8,8 +8,8 @@ import dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.GuiRenderer;
 import net.minecraft.client.gui.render.TextureSetup;
-import net.minecraft.client.gui.render.state.BlitRenderState;
-import net.minecraft.client.gui.render.state.GuiItemRenderState;
+import net.minecraft.client.renderer.state.gui.BlitRenderState;
+import net.minecraft.client.renderer.state.gui.GuiItemRenderState;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.util.ARGB;
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +31,7 @@ public class GuiRendererMixin {
 		InventoryOverlay.transparentItemStates.clear();
 	}
 
-	@WrapOperation(method = "submitBlitFromItemAtlas", at = @At(value = "NEW", target = "Lnet/minecraft/client/gui/render/state/BlitRenderState;"))
+	@WrapOperation(method = "submitBlitFromItemAtlas", at = @At(value = "NEW", target = "Lnet/minecraft/client/renderer/state/gui/BlitRenderState;"))
 	BlitRenderState processTransparentItemState(
 		RenderPipeline pipeline,
 		TextureSetup textureSetup,

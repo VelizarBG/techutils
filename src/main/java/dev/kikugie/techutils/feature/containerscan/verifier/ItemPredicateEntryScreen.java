@@ -2,7 +2,7 @@ package dev.kikugie.techutils.feature.containerscan.verifier;
 
 import dev.kikugie.techutils.util.ItemPredicateUtils;
 import net.minecraft.client.GameNarrator;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -84,6 +84,11 @@ public class ItemPredicateEntryScreen extends Screen {
 	}
 
 	@Override
+	public boolean isInGameUi() {
+		return true;
+	}
+
+	@Override
 	public boolean keyPressed(KeyEvent input) {
 		if (super.keyPressed(input)) {
 			return true;
@@ -96,15 +101,10 @@ public class ItemPredicateEntryScreen extends Screen {
 	}
 
 	@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-		super.render(graphics, mouseX, mouseY, delta);
-		graphics.drawCenteredString(this.font, TITLE, this.width / 2, 20, 16777215);
-		graphics.drawString(this.font, INPUT_TEXT, this.width / 2 - 150 + 1, 40, 10526880);
-		this.consoleCommandTextField.render(graphics, mouseX, mouseY, delta);
-	}
-
-	@Override
-	public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-		this.renderTransparentBackground(graphics);
+	public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+		super.extractRenderState(graphics, mouseX, mouseY, delta);
+		graphics.centeredText(this.font, TITLE, this.width / 2, 20, 16777215);
+		graphics.text(this.font, INPUT_TEXT, this.width / 2 - 150 + 1, 40, 10526880);
+		this.consoleCommandTextField.extractRenderState(graphics, mouseX, mouseY, delta);
 	}
 }

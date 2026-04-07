@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom'
+	id 'net.fabricmc.fabric-loom'
 	id 'me.modmuss50.mod-publish-plugin'
 	id 'maven-publish'
 }
@@ -24,7 +24,6 @@ repositories {
 			}
 		}
 		filter {
-			includeGroup "com.github.sakura-ryoko"
 			includeGroup "com.github.Chocohead"
 		}
 	}
@@ -84,7 +83,7 @@ repositories {
 			includeGroupAndSubgroups "org.enginehub"
 		}
 	}
-	exclusiveContent {
+	/*exclusiveContent {
 		forRepository {
 			maven {
 				name = "sonatype-oss-snapshots1"
@@ -94,22 +93,17 @@ repositories {
 		filter {
 			includeGroup "org.vineflower"
 		}
-	}
+	}*/
 	exclusiveContent {
 		forRepository {
 			maven {
-				name = "ParchmentMC"
-				url = "https://maven.parchmentmc.org"
+				name = "Masa-Sakura Maven"
+				url = "https://masa.dy.fi/maven/sakura-ryoko"
 			}
 		}
 		filter {
-			includeGroupAndSubgroups "org.parchmentmc"
+			includeGroupAndSubgroups "fi.dy.masa"
 		}
-	}
-	maven {
-		name = "Fallen Breath"
-		url = 'https://maven.fallenbreath.me/releases'
-		content {includeGroupAndSubgroups("me.fallenbreath")}
 	}
 }
 
@@ -137,22 +131,19 @@ dependencies {
 
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings loom.layered {
-		officialMojangMappings { nameSyntheticMembers = true }
-		parchment("org.parchmentmc.data:parchment-${project.parchment_version}@zip")
-	}
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	modImplementation include("com.github.Chocohead:Fabric-ASM:v${project.fabric_asm_version}")
+	implementation include("com.github.Chocohead:Fabric-ASM:v${project.fabric_asm_version}")
 
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-	modApi("com.terraformersmc:modmenu:${project.modmenu_version}")
-	modImplementation("com.github.sakura-ryoko:malilib:${project.malilib_version}")
-	modImplementation("com.github.sakura-ryoko:litematica:${project.litematica_version}")
-	modImplementation("com.github.sakura-ryoko:tweakeroo:${project.tweakeroo_version}")
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	api("com.terraformersmc:modmenu:${project.modmenu_version}")
+	implementation("fi.dy.masa.malilib:malilib-fabric-${project.malilib_version}")
+	implementation("fi.dy.masa.litematica:litematica-fabric-${project.litematica_version}")
+	implementation("fi.dy.masa.tweakeroo:tweakeroo-fabric-${project.tweakeroo_version}")
 
-	modImplementation "com.sk89q.worldedit:worldedit-fabric-mc${project.worldedit_version}"
-	modImplementation "org.enginehub.worldeditcui-protocol:worldeditcui-protocol-fabric-mc${project.worldeditcui_protocol_version}"
+	compileOnly "com.sk89q.worldedit:worldedit-fabric-mc${project.worldedit_version}"
+	compileOnly "org.enginehub.worldeditcui-protocol:worldeditcui-protocol-common-mc${project.worldeditcui_protocol_version}"
+	compileOnly "org.enginehub.worldeditcui-protocol:worldeditcui-protocol-fabric-mc${project.worldeditcui_protocol_version}"
 	testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
 }
 
@@ -186,8 +177,8 @@ processResources {
 	}
 }
 
-// Minecraft 1.20.5 (24w14a) upwards uses Java 21.
-def targetJavaVersion = 21
+// Minecraft 26.1 upwards uses Java 25.
+def targetJavaVersion = 25
 tasks.withType(JavaCompile).configureEach {
 	it.options.encoding = "UTF-8"
 	it.options.release.set(targetJavaVersion)
@@ -227,8 +218,8 @@ publishing {
 }
 
 publishMods {
-	file = remapJar.archiveFile
-	additionalFiles.from(remapSourcesJar.archiveFile)
+	file = jar.archiveFile
+	additionalFiles.from(sourcesJar.archiveFile)
 	version = "$project.version"
 	displayName = "Technical Utilities $project.mod_version+$project.title_version"
 	type = STABLE

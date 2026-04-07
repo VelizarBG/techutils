@@ -17,7 +17,6 @@ import fi.dy.masa.litematica.schematic.verifier.SchematicVerifier;
 import fi.dy.masa.litematica.util.ItemUtils;
 import fi.dy.masa.malilib.util.IntBoundingBox;
 import fi.dy.masa.malilib.util.WorldUtils;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.criterion.ItemPredicate;
@@ -52,7 +51,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +89,7 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 	}
 
 	@ModifyExpressionValue(method = "verifyChunks", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/world/ChunkManagerSchematic;hasChunk(II)Z", remap = true))
-	private boolean ensureInventoriesAreLoaded(boolean isLoaded, @Local ChunkPos pos) {
+	private boolean ensureInventoriesAreLoaded(boolean isLoaded, @Local(name = "pos") ChunkPos pos) {
 		return isLoaded && canProcessChunk(pos);
 	}
 
@@ -126,7 +124,7 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 			if (eds.hasPendingChunk(pos))
 				return false;
 
-			ImmutableMap<String, IntBoundingBox> volumes = schematicPlacement.getBoxesWithinChunk(pos.x, pos.z);
+			ImmutableMap<String, IntBoundingBox> volumes = schematicPlacement.getBoxesWithinChunk(pos.x(), pos.z());
 			int minY = 319;         // Invert Values
 			int maxY = -64;
 
@@ -201,10 +199,18 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 	@Unique
 	private void warCrime(InventoryBE expected, InventoryBE found, IdentityHashMap<BlockState, ItemStack> itemsForStates, BlockPos pos) {
 		BlockState foundState = found.getBlockState();
-		HashMap<Property<?>, Comparable<?>> propertyMap = new HashMap<>(foundState.getValues());
+		List<Property<?>> properties = new ArrayList<>();
+		List<Comparable<?>> values = new ArrayList<>();
 
-		propertyMap.put(BooleanProperty.create("war_crime"), true);
-		BlockState newState = new BlockState(foundState.getBlock(), new Reference2ObjectArrayMap<>(propertyMap), null);
+		foundState.getValues().forEach(value -> {
+			properties.add(value.property());
+			values.add(value.value());
+		});
+
+		properties.add(BooleanProperty.create("war_crime"));
+		values.add(true);
+
+		BlockState newState = new BlockState(foundState.getBlock(), properties.toArray(Property[]::new), values.toArray(Comparable[]::new));
 
 		itemsForStates.put(newState, ItemUtils.getItemForBlock(worldClient, pos, foundState, true));
 		wrongInventoriesPositions.put(Pair.of(expected.getBlockState(), newState), pos);
@@ -268,14 +274,14 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 	}
 
 	@Inject(method = "toggleMismatchEntrySelected", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/HashMultimap;remove(Ljava/lang/Object;Ljava/lang/Object;)Z"))
-	private void tryRemoveSelectedInventoryMismatch(BlockMismatch mismatch, CallbackInfo ci, @Local MismatchType type) {
+	private void tryRemoveSelectedInventoryMismatch(BlockMismatch mismatch, CallbackInfo ci, @Local(name = "type") MismatchType type) {
 		if (type == WRONG_INVENTORIES) {
 			selectedInventoryMismatches.remove(mismatch);
 		}
 	}
 
 	@Inject(method = "toggleMismatchEntrySelected", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/HashMultimap;put(Ljava/lang/Object;Ljava/lang/Object;)Z"))
-	private void tryAddSelectedInventoryMismatch(BlockMismatch mismatch, CallbackInfo ci, @Local MismatchType type) {
+	private void tryAddSelectedInventoryMismatch(BlockMismatch mismatch, CallbackInfo ci, @Local(name = "type") MismatchType type) {
 		if (type == WRONG_INVENTORIES) {
 			selectedInventoryMismatches.add(mismatch);
 		}

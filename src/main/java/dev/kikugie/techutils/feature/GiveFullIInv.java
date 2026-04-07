@@ -15,7 +15,6 @@ import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
@@ -61,8 +60,8 @@ public class GiveFullIInv {
 		return INSTANCE.getItem(mainHand, offHand);
 	}
 
-	public static ItemStack fillShulker(ItemStack stack, @Nullable DyeColor color) {
-		Block shulker = ShulkerBoxBlock.getBlockByColor(color);
+	public static ItemStack fillShulker(ItemStack stack) {
+		Block shulker = Blocks.SHULKER_BOX;
 		ShulkerBoxBlockEntity box = new ShulkerBoxBlockEntity(BlockPos.ZERO, shulker.defaultBlockState());
 		return fillLootable(stack, shulker.asItem(), box);
 	}
@@ -83,9 +82,9 @@ public class GiveFullIInv {
 	}
 
 	public static ItemStack fillBundle(ItemStack stack) {
-		List<ItemStack> stacks = new ArrayList<>();
+		List<ItemStackTemplate> stacks = new ArrayList<>();
 		for (int i = 0; i < MiscConfigs.BUNDLE_FILL.getIntegerValue(); i++) {
-			stacks.add(stack.copy());
+			stacks.add(ItemStackTemplate.fromNonEmptyStack(stack.copy()));
 		}
 		ItemStack bundle = Items.BUNDLE.getDefaultInstance();
 		BundleContents.Mutable builder = new BundleContents.Mutable(new BundleContents(stacks));
@@ -132,7 +131,7 @@ public class GiveFullIInv {
 			return Optional.empty();
 		}
 		ItemStack fullStack = mainHand.copyWithCount(mainHand.getMaxStackSize());
-		return Optional.of(handleOffHand(offHand, stack -> fillShulker(stack, null)).apply(fullStack));
+		return Optional.of(handleOffHand(offHand, GiveFullIInv::fillShulker).apply(fullStack));
 	}
 
 	private Optional<ItemStack> handleBox(ItemStack mainHand, ItemStack offHand) {
@@ -170,7 +169,7 @@ public class GiveFullIInv {
 	private void sendError(String key) {
 		Component message = Component.translatable("techutils.feature.givefullinv." + key).withStyle(ChatFormatting.DARK_RED);
 		if (Minecraft.getInstance() != null && Minecraft.getInstance().player != null)
-			Minecraft.getInstance().player.displayClientMessage(message, true);
+			Minecraft.getInstance().player.sendOverlayMessage(message);
 		else
 			TechUtilsMod.LOGGER.warn(message.getString());
 	}
