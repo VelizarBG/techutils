@@ -11,6 +11,7 @@
     "techutils.feature.givefullinv.nested_box": "Cannot nest shulker boxes!",
     "techutils.feature.givefullinv.no_item": "Main hand is empty, nothing to insert!",
     "techutils.feature.givefullinv.not_creative_enough": "Must be in creative mode!",
+    "techutils.feature.givefullinv.too_fast": "You are too fast!",
     "commands.itempredicate.not_in_creative_mode": "You must be in creative mode!",
     "commands.itempredicate.placeholder.wrong_main_hand": "You must have an Item Predicate in your main hand!",
     "commands.itempredicate.placeholder.set.success": "Successfully set placeholder item!",

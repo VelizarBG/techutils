@@ -27,6 +27,9 @@ public class MiscConfigs extends Configs.BaseConfigs {
 	public static final ConfigBoolean FILL_SAFETY = new ConfigBoolean("fillSafety", true, """
 		Restrict nested containers to prevent crashing yourself.
 		Here be cats and scratches!""");
+	public static final ConfigInteger FILL_COOLDOWN = new ConfigInteger("fillCooldown", 1000, """
+		Cooldown in milliseconds between filling operations
+		""");
 	public static final ConfigHotkey SCAN_INVENTORY = new ConfigHotkey("scanInventory", "I", "");
 	public static final ConfigInteger REQUEST_TIMEOUT = new ConfigInteger("requestTimeout", 60, 1, 1000, false,
 		"Time in game ticks before request is considered failed");
@@ -37,7 +40,8 @@ public class MiscConfigs extends Configs.BaseConfigs {
 			COMPACT_SCOREBOARD,
 			GIVE_FULL_INV,
 			BUNDLE_FILL,
-			FILL_SAFETY
+			FILL_SAFETY,
+			FILL_COOLDOWN
 		));
 	}
 }
