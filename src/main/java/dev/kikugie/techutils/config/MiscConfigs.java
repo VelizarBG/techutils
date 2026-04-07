@@ -9,10 +9,10 @@ import fi.dy.masa.malilib.config.options.ConfigInteger;
 public class MiscConfigs extends Configs.BaseConfigs {
 	public static final ConfigHotkey OPEN_CONFIG = new ConfigHotkey("openConfig", "U, C",
 		"Opens this screen if none other is open");
-	public static final ConfigBooleanHotkeyed COMPACT_SCOREBOARD = new ConfigBooleanHotkeyed("compactScoreboard", false, "F6", """
+	public static final ConfigBooleanHotkeyed COMPACT_SCOREBOARD = new ConfigBooleanHotkeyed("compactScoreboard", false, "", """
 		Show scoreboard values in compact notation.
 		For example: 123456 -> 123.4K""");
-	public static final ConfigHotkey GIVE_FULL_INV = new ConfigHotkey("giveFullInv", "G", """
+	public static final ConfigHotkey GIVE_FULL_INV = new ConfigHotkey("giveFullInv", "", """
 		Give full inventory of an item with following rules:
 		- Main hand: item; Off hand: none; Result: shulker box of item.
 		- Main hand: item; Off hand: container; Result: container of item.
