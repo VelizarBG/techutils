@@ -1,0 +1,24 @@
+{
+    "techutils.config.title": "技术实用工具配置 - %s",
+    "techutils.config.category.litematica": "Litematica",
+    "techutils.config.category.worldedit": "WorldEdit",
+    "techutils.config.category.misc": "杂项",
+    "techutils.config.preview.profile.drag": "拖动",
+    "techutils.config.preview.profile.pos": "位置",
+    "techutils.config.preview.profile.spin": "旋转",
+    "techutils.feature.worldeditsync.success": "已同步 WorldEdit 区域",
+    "techutils.feature.givefullinv.nested_stack": "无法嵌套非空容器！",
+    "techutils.feature.givefullinv.nested_box": "无法嵌套潜影盒！",
+    "techutils.feature.givefullinv.no_item": "主手为空，无可插入物品！",
+    "techutils.feature.givefullinv.not_creative_enough": "必须处于创造模式！",
+    "commands.itempredicate.not_in_creative_mode": "您必须处于创造模式！",
+    "commands.itempredicate.placeholder.wrong_main_hand": "主手必须持有物品谓词！",
+    "commands.itempredicate.placeholder.set.success": "已成功设置占位符物品！",
+    "commands.itempredicate.placeholder.get.not_found": "此物品谓词没有占位符！",
+    "commands.itempredicate.placeholder.get.success": "已成功获取占位符！",
+    "item_predicate_entry_screen.title": "输入要给予的物品谓词",
+    "item_predicate_entry_screen.input": "物品谓词",
+
+    "litematica.info.schematic_manager.preview.right_click_to_cancel": "- 右键单击按钮可取消待处理的预览操作\n- 按住 Ctrl 单击可选择预览图像。",
+    "litematica.gui.label.schematic_verifier_display_type.wrong_inventories": "错误的填充"
+}
