@@ -19,6 +19,7 @@ import java.util.List;
 
 public class Configs implements IConfigHandler {
 	private static final String CONFIG_FILE_NAME = Reference.MOD_ID + ".json";
+	public static final String CONFIG_KEY = Reference.MOD_ID + ".config";
 	public static LitematicConfigs LITEMATIC_CONFIGS = new LitematicConfigs();
 	public static WorldEditConfigs WORLDEDIT_CONFIGS = new WorldEditConfigs();
 	public static MiscConfigs MISC_CONFIGS = new MiscConfigs();
