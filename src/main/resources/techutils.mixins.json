@@ -6,12 +6,12 @@
     "mixins": [
     ],
     "client": [
-        "compactscoreboard.GuiMixin",
+        "compactscoreboard.HudMixin",
         "containerscan.AbstractContainerScreenMixin",
         "containerscan.CrafterScreenMixin",
         "containerscan.GuiGraphicsExtractorMixin",
         "containerscan.GuiRendererMixin",
-        "containerscan.MinecraftMixin",
+        "containerscan.GuiMixin",
         "containerscan.MultiPlayerGameModeMixin",
         "mod.fapi.ClientPlayNetworkAddonMixin",
         "mod.litematica.BlockMismatchMixin",

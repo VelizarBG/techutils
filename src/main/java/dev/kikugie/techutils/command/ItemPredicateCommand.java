@@ -30,7 +30,7 @@ public class ItemPredicateCommand {
 					enforceCreativeMode(player);
 
 					var offHandStack = player.getOffhandItem().copy();
-					TechUtilsMod.QUEUED_END_CLIENT_TICK_TASKS.add(client -> client.setScreen(new ItemPredicateEntryScreen(player, offHandStack)));
+					TechUtilsMod.QUEUED_END_CLIENT_TICK_TASKS.add(client -> client.gui.setScreen(new ItemPredicateEntryScreen(player, offHandStack)));
 					return 1;
 				})
 			)
@@ -50,7 +50,7 @@ public class ItemPredicateCommand {
 					var rawPredicate = ItemPredicateUtils.getRawPredicate(mainHandStack);
 					var placeholder = ItemPredicateUtils.getPlaceholder(mainHandStack);
 
-					TechUtilsMod.QUEUED_END_CLIENT_TICK_TASKS.add(client -> client.setScreen(new ItemPredicateEntryScreen(context.getSource().getPlayer(), rawPredicate, placeholder)));
+					TechUtilsMod.QUEUED_END_CLIENT_TICK_TASKS.add(client -> client.gui.setScreen(new ItemPredicateEntryScreen(context.getSource().getPlayer(), rawPredicate, placeholder)));
 					return 1;
 				})
 			)

@@ -2,8 +2,8 @@ package dev.kikugie.techutils.util;
 
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import net.minecraft.ChatFormatting;
-import net.minecraft.advancements.criterion.ItemPredicate;
-import net.minecraft.advancements.criterion.MinMaxBounds;
+import net.minecraft.advancements.predicates.ItemPredicate;
+import net.minecraft.advancements.predicates.MinMaxBounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentType;
@@ -25,6 +25,7 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.component.TypedEntityData;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.entity.BlockEntityTypes;
 import net.minecraft.world.level.storage.TagValueOutput;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,7 +50,7 @@ public final class ItemPredicateUtils {
 		ItemStack stack = Items.COMMAND_BLOCK.getDefaultInstance();
 
 		nbtOutput.putString("Command", rawPredicate);
-		BlockItem.setBlockEntityData(stack, BlockEntityType.COMMAND_BLOCK, nbtOutput);
+		BlockItem.setBlockEntityData(stack, BlockEntityTypes.COMMAND_BLOCK, nbtOutput);
 
 		setPlaceholder(stack, placeholder);
 

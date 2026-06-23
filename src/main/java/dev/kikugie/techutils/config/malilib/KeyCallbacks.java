@@ -48,7 +48,7 @@ public class KeyCallbacks {
 			return true;
 		});
 		ConditionalCallback.set(MiscConfigs.OPEN_CONFIG, action -> {
-			Minecraft.getInstance().setScreen(new ConfigGui());
+			Minecraft.getInstance().gui.setScreen(new ConfigGui());
 			return true;
 		});
 		ConditionalCallback.set(MiscConfigs.GIVE_FULL_INV, action -> GiveFullIInv.onKeybind());

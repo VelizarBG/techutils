@@ -36,7 +36,7 @@ public record LocalPlacementPos(BlockPos pos, String region, SchematicPlacement 
 			.toList();
 
 		for (SchematicPlacementManager.PlacementPart part : parts) {
-			if (!part.getBox().containsPos(worldPos))
+			if (!part.getBox().contains(worldPos))
 				continue;
 
 			SchematicPlacement placement = part.placement;

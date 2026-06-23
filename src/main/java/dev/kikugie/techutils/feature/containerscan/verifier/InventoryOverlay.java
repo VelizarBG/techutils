@@ -10,7 +10,7 @@ import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.litematica.gui.GuiSchematicVerifier;
 import fi.dy.masa.malilib.util.WorldUtils;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.advancements.predicates.ItemPredicate;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.state.gui.GuiItemRenderState;
@@ -140,7 +140,7 @@ public class InventoryOverlay {
 			return;
 		}
 		Minecraft client = Minecraft.getInstance();
-		if (client.screen instanceof GuiSchematicVerifier) {
+		if (client.gui.screen() instanceof GuiSchematicVerifier) {
 			stack = SchematicVerifierExtension.addErrorLines(stack, lines);
 		}
 		if (LitematicConfigs.VERIFY_ITEM_COMPONENTS.getBooleanValue()) {

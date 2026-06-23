@@ -3,7 +3,7 @@ package dev.kikugie.techutils.mixin.containerscan;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.DestFactor;
+import com.mojang.blaze3d.platform.BlendFactor;
 import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay;
@@ -58,7 +58,7 @@ public class GuiGraphicsExtractorMixin {
 		RenderPipeline pipeline, GpuTextureView atlasTexture, GpuSampler sampler, int x0, int y0, int x1, int y1, float u0, float u1, float v0, float v1, int color, Operation<Void> original
 	) {
 		if (InventoryOverlay.isRenderingTransparentItem) {
-			if (pipeline.getColorTargetState().blendFunction().isPresent() && pipeline.getColorTargetState().blendFunction().get().destAlpha() == DestFactor.ZERO) {
+			if (pipeline.getColorTargetState().blendFunction().isPresent() && pipeline.getColorTargetState().blendFunction().get().alpha().destFactor() == BlendFactor.ZERO) {
 				color = ARGB.scaleRGB(color, InventoryOverlay.MISSING_ITEM_ALPHA);
 			} else {
 				color = ARGB.color(Math.round(ARGB.alpha(color) * InventoryOverlay.MISSING_ITEM_ALPHA), color);

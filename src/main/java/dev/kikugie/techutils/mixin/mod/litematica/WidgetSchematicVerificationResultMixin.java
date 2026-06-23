@@ -54,7 +54,7 @@ public abstract class WidgetSchematicVerificationResultMixin<InventoryBE extends
 	@WrapWithCondition(method = "postRenderHovered", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/gui/widgets/WidgetSchematicVerificationResult$BlockMismatchInfo;render(Lfi/dy/masa/malilib/render/GuiContext;II)V", remap = true))
 	private boolean renderInventoryOverlayIfNecessary(WidgetSchematicVerificationResult.BlockMismatchInfo instance, GuiContext ctx, int x, int y, GuiContext unused, int mouseX, int mouseY, boolean selected) {
 		//noinspection unchecked
-		var inventories = mismatchEntry.blockMismatch == null ? null : ((BlockMismatchExtension<InventoryBE>) mismatchEntry.blockMismatch).getInventories$techutils();
+		var inventories = mismatchEntry.blockMismatch == null ? null : ((BlockMismatchExtension<InventoryBE>) (Object) mismatchEntry.blockMismatch).getInventories$techutils();
 		if (inventories == null) {
 			return true;
 		}
@@ -145,17 +145,19 @@ public abstract class WidgetSchematicVerificationResultMixin<InventoryBE extends
 		int yInv = 0;
 		int compatShift = OverlayRenderer.calculateCompatYShift();
 
-		switch (align)
+		yInv = switch (align)
 		{
-			case CENTER:
+			case CENTER ->
+			{
 				xInv = GuiUtils.getScaledWindowWidth() / 2 - (props.width / 2);
-				yInv = GuiUtils.getScaledWindowHeight() / 2 - props.height - offY;
-				break;
-			case TOP_CENTER:
+				yield GuiUtils.getScaledWindowHeight() / 2 - props.height - offY;
+			}
+			case TOP_CENTER ->
+			{
 				xInv = GuiUtils.getScaledWindowWidth() / 2 - (props.width / 2);
-                yInv = offY + compatShift;
-				break;
-		}
+				yield offY + compatShift;
+			}
+		};
 
 		if      (side == LeftRight.LEFT)  { xInv -= (props.width / 2 + 4); }
 		else if (side == LeftRight.RIGHT) { xInv += (props.width / 2 + 4); }

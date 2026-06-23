@@ -10,16 +10,16 @@ import dev.kikugie.techutils.config.LitematicConfigs;
 import dev.kikugie.techutils.feature.containerscan.verifier.BlockMismatchExtension;
 import dev.kikugie.techutils.feature.containerscan.verifier.SchematicVerifierExtension;
 import dev.kikugie.techutils.util.ItemPredicateUtils;
-import fi.dy.masa.litematica.data.EntitiesDataStorage;
+import fi.dy.masa.litematica.data.EntityDataManager;
 import fi.dy.masa.litematica.scheduler.tasks.TaskBase;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacement;
 import fi.dy.masa.litematica.schematic.verifier.SchematicVerifier;
 import fi.dy.masa.litematica.util.ItemUtils;
-import fi.dy.masa.malilib.util.IntBoundingBox;
+import fi.dy.masa.malilib.util.position.IntBoundingBox;
 import fi.dy.masa.malilib.util.WorldUtils;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.ChatFormatting;
-import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.advancements.predicates.ItemPredicate;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
@@ -112,12 +112,12 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 	private boolean canProcessChunk(ChunkPos pos)
 	{
 		// Request entity data from Servux, if the ClientWorld matches, and treat it as not yet loaded
-		EntitiesDataStorage eds = EntitiesDataStorage.getInstance();
-		if ((eds.hasServuxServer() || eds.getIfReceivedBackupPackets())
-			&& Objects.equals(eds.getWorld(), this.worldClient)
-			&& !eds.hasCompletedChunk(pos))
+		EntityDataManager edm = EntityDataManager.getInstance();
+		if ((edm.hasServuxServer() || edm.getIfReceivedBackupPackets())
+			&& Objects.equals(edm.getClientWorld(), this.worldClient)
+			&& !edm.hasCompletedChunk(pos))
 		{
-			if (eds.hasPendingChunk(pos))
+			if (edm.hasPendingChunk(pos))
 				return false;
 
 			ImmutableMap<String, IntBoundingBox> volumes = schematicPlacement.getBoxesWithinChunk(pos.x(), pos.z());
@@ -132,13 +132,13 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 				maxY = Math.max(bb.maxY(), maxY);
 			}
 
-			if (eds.hasServuxServer())
+			if (edm.hasServuxServer())
 			{
-				eds.requestServuxBulkEntityData(pos, minY, maxY);
+				edm.requestServuxBulkEntityData(pos, minY, maxY);
 			}
-			else if (eds.getIfReceivedBackupPackets())
+			else if (edm.getIfReceivedBackupPackets())
 			{
-				eds.requestBackupBulkEntityData(pos, minY, maxY);
+				edm.requestBackupBulkEntityData(pos, minY, maxY);
 			}
 
 			return false;
@@ -267,7 +267,7 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 			BlockState rightState = pair.getRight().getBlockState();
 			BlockMismatch blockMismatch = new BlockMismatch(WRONG_INVENTORIES, leftState, rightState, 1);
 			//noinspection unchecked
-			((BlockMismatchExtension<InventoryBE>) blockMismatch).setInventories$techutils(pair);
+			((BlockMismatchExtension<InventoryBE>) (Object) blockMismatch).setInventories$techutils(pair);
 			list.add(blockMismatch);
 		}
 		ci.cancel();
@@ -328,8 +328,8 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 	@ModifyExpressionValue(method = "ignoreStateMismatch(Lfi/dy/masa/litematica/schematic/verifier/SchematicVerifier$BlockMismatch;Z)V", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/schematic/verifier/SchematicVerifier;getMapForMismatchType(Lfi/dy/masa/litematica/schematic/verifier/SchematicVerifier$MismatchType;)Lcom/google/common/collect/ArrayListMultimap;"))
 	private ArrayListMultimap<Pair<BlockState, BlockState>, BlockPos> removeInventoryIfNecessary(ArrayListMultimap<Pair<BlockState, BlockState>, BlockPos> positions, @Local(argsOnly = true) BlockMismatch mismatch) {
 		if (positions == wrongInventoriesPositions) {
-            ignoredInventories.add(positions.get(Pair.of(mismatch.stateExpected, mismatch.stateFound)).getFirst());
-			wrongInventories.remove(((BlockMismatchExtension<?>) mismatch).getInventories$techutils());
+            ignoredInventories.add(positions.get(Pair.of(mismatch.stateExpected(), mismatch.stateFound())).getFirst());
+			wrongInventories.remove(((BlockMismatchExtension<?>) (Object) mismatch).getInventories$techutils());
 			selectedInventoryMismatches.remove(mismatch);
 		}
 		return positions;
@@ -349,6 +349,6 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 		wrongInventories.clear();
 		wrongInventoriesPositions.clear();
 		selectedInventoryMismatches.clear();
-		EntitiesDataStorage.getInstance().reset(false);
+		EntityDataManager.getInstance().reset(false);
 	}
 }

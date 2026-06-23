@@ -8,12 +8,12 @@ import dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.GuiRenderer;
 import net.minecraft.client.gui.render.TextureSetup;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.state.gui.BlitRenderState;
 import net.minecraft.client.renderer.state.gui.GuiItemRenderState;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.util.ARGB;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix3x2f;
+import org.joml.Matrix3x2fc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -26,7 +26,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(GuiRenderer.class)
 public class GuiRendererMixin {
-	@Inject(method = "render(Lcom/mojang/blaze3d/buffers/GpuBufferSlice;)V", at = @At("RETURN"))
+	@Inject(method = "render", at = @At("RETURN"))
 	private void clearTransparentItemStates(CallbackInfo ci) {
 		InventoryOverlay.transparentItemStates.clear();
 	}
@@ -35,26 +35,26 @@ public class GuiRendererMixin {
 	BlitRenderState processTransparentItemState(
 		RenderPipeline pipeline,
 		TextureSetup textureSetup,
-		Matrix3x2f pose,
+		Matrix3x2fc pose,
+		int x0,
+		int y0,
 		int x1,
 		int y1,
-		int x2,
-		int y2,
+		float u0,
 		float u1,
-		float u2,
+		float v0,
 		float v1,
-		float v2,
 		int color,
 		@Nullable ScreenRectangle scissorArea,
 		@Nullable ScreenRectangle bounds,
 		Operation<BlitRenderState> original,
-		@Local(argsOnly = true) GuiItemRenderState state
+		@Local(argsOnly = true) GuiItemRenderState itemState
 	) {
-		if (InventoryOverlay.transparentItemStates.contains(state)) {
+		if (InventoryOverlay.transparentItemStates.contains(itemState)) {
 			color = ARGB.color(Math.round(ARGB.alpha(color) * InventoryOverlay.MISSING_ITEM_ALPHA), color);
 			pipeline = RenderPipelines.GUI_TEXTURED;
 		}
 
-		return original.call(pipeline, textureSetup, pose, x1, y1, x2, y2, u1, u2, v1, v2, color, scissorArea, bounds);
+		return original.call(pipeline, textureSetup, pose, x0, y0, x1, y1, u0, u1, v0, v1, color, scissorArea, bounds);
 	}
 }

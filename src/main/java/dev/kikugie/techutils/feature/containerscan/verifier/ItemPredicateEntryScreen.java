@@ -11,6 +11,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import org.apache.commons.lang3.ObjectUtils;
 import org.jspecify.annotations.NullMarked;
 import org.lwjgl.glfw.GLFW;
 
@@ -54,7 +55,7 @@ public class ItemPredicateEntryScreen extends Screen {
 		this.minecraft.gameMode.handleCreativeModeItemAdd(stack, 36 + selectedSlot);
 		this.player.inventoryMenu.broadcastChanges();
 
-		this.minecraft.setScreen(null);
+		this.minecraft.gui.setScreen(null);
 	}
 
 	@Override
@@ -67,7 +68,7 @@ public class ItemPredicateEntryScreen extends Screen {
 		);
 		this.consoleCommandTextField = new EditBox(this.font, this.width / 2 - 150, 50, 300, 20, Component.translatable("advMode.command"));
 		this.consoleCommandTextField.setMaxLength(100000);
-		this.consoleCommandTextField.setValue(initInput);
+		this.consoleCommandTextField.setValue(ObjectUtils.getIfNull(initInput, ""));
 		this.addWidget(this.consoleCommandTextField);
 	}
 

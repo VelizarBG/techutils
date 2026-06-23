@@ -37,7 +37,8 @@ public class IsorenderSelectionCommand {
 			box.getPos1().getZ(),
 			box.getPos2().getX(),
 			box.getPos2().getY(),
-			box.getPos2().getZ()));
+			box.getPos2().getZ()),
+			context.getSource(), null);
 
 		return 1;
 	}
