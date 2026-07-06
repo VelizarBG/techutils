@@ -40,5 +40,8 @@
         "malilib": "${malilib_dependency}",
         "litematica": "${litematica_dependency}"
     },
+    "breaks": {
+        "worldedit": ["<${breaks_worldedit_dependency}", ">${breaks_worldedit_dependency}"]
+    },
     "accessWidener": "techutils.accesswidener"
 }

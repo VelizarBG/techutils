@@ -12,7 +12,8 @@ import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.util.FileUtils;
 import fi.dy.masa.malilib.util.JsonUtils;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,10 +24,10 @@ public class Configs implements IConfigHandler {
 	public static MiscConfigs MISC_CONFIGS = new MiscConfigs();
 
 	public static void loadFromFile() {
-		File configFile = new File(FileUtils.getConfigDirectory(), CONFIG_FILE_NAME);
+		Path configFile = FileUtils.getConfigDirectoryAsPath().resolve( CONFIG_FILE_NAME);
 
-		if (configFile.exists() && configFile.isFile() && configFile.canRead()) {
-			JsonElement element = JsonUtils.parseJsonFile(configFile);
+		if (Files.exists(configFile) && Files.isReadable(configFile)) {
+			JsonElement element = JsonUtils.parseJsonFileAsPath(configFile);
 			if (element != null && element.isJsonObject()) {
 				JsonObject root = element.getAsJsonObject();
 
@@ -38,16 +39,20 @@ public class Configs implements IConfigHandler {
 	}
 
 	public static void saveToFile() {
-		File dir = FileUtils.getConfigDirectory();
+		Path dir = FileUtils.getConfigDirectoryAsPath();
 
-		if ((dir.exists() && dir.isDirectory()) || dir.mkdirs()) {
+		if (!Files.exists(dir)) {
+			FileUtils.createDirectoriesIfMissing(dir);
+		}
+
+		if (Files.isDirectory(dir)) {
 			JsonObject root = new JsonObject();
 
 			ConfigUtils.writeConfigBase(root, "litematica", LITEMATIC_CONFIGS.get());
 			ConfigUtils.writeConfigBase(root, "worldedit", WORLDEDIT_CONFIGS.get());
 			ConfigUtils.writeConfigBase(root, "misc", MISC_CONFIGS.get());
 
-			JsonUtils.writeJsonToFile(root, new File(dir, CONFIG_FILE_NAME));
+			JsonUtils.writeJsonToFileAsPath(root, dir.resolve(CONFIG_FILE_NAME));
 		}
 	}
 
