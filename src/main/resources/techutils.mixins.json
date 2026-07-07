@@ -31,7 +31,7 @@
         "mod.litematica.WidgetSchematicVerificationResultMixin",
         "preview.BlockEntityAccessor",
         "worldeditsync.ClientPlayNetworkHandlerMixin",
-        "worldeditsync.WECUIPacketHandlerMixin"
+        "worldeditsync.FabricCUIPacketHandlerMixin"
     ],
     "injectors": {
         "defaultRequire": 1,

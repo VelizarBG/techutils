@@ -1,12 +1,12 @@
 package dev.kikugie.techutils.feature.worldedit;
 
-import com.sk89q.worldedit.fabric.net.handler.WECUIPacketHandler;
 import dev.kikugie.techutils.TechUtilsMod;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import org.enginehub.worldeditcui.protocol.CUIPacket;
 
 import java.util.Optional;
 
@@ -28,9 +28,10 @@ public class WorldEditNetworkHandler {
 		var receivers = ClientPlayNetworking.getGlobalReceivers();
 		if (receivers.contains(CHANNEL)) {
 			this.yoinkPackets = true;
+			handshake();
 			return;
 		}
-		ClientPlayNetworking.registerReceiver(WECUIPacketHandler.CuiPacket.TYPE, (payload, context) -> this.onPacket(payload.text()));
+		ClientPlayNetworking.registerReceiver(CUIPacket.TYPE, (payload, context) -> this.onPacket(payload));
 		handshake();
 	}
 
@@ -48,25 +49,20 @@ public class WorldEditNetworkHandler {
 
 	public void onYoinkedPacket(CustomPayload payload) {
 		if (!this.yoinkPackets) return;
-		onPacket(((WECUIPacketHandler.CuiPacket) payload).text());
+		onPacket((CUIPacket) payload);
 	}
 
-	private void onPacket(String message) {
+	private void onPacket(CUIPacket packet) {
 		if (!this.worldEditConnected) {
 			this.worldEditConnected = true;
 			TechUtilsMod.LOGGER.info("WorldEdit connected");
 			WorldEditSync.getInstance().ifPresent(WorldEditSync::onWorldEditConnected);
 		}
-		if (message.isEmpty()) {
+		if (packet.args().isEmpty()) {
 			TechUtilsMod.LOGGER.warn("WorldEditNetworkHandler#onPacket(): Received CUI packet of length zero");
 			return;
 		}
-		String[] split = message.split("\\|", -1);
-		boolean multi = split[0].startsWith("+");
-		String type = split[0].substring(multi ? 1 : 0);
-		String[] args = message.substring(type.length() + (multi ? 2 : 1)).split("\\|", -1);
-		TechUtilsMod.LOGGER.info(message);
-		handlePacket(type, args);
+		handlePacket(packet.eventType(), packet.args().toArray(String[]::new));
 	}
 
 	private void handlePacket(String type, String[] args) {
@@ -81,13 +77,11 @@ public class WorldEditNetworkHandler {
 			BlockPos pos = new BlockPos(Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]));
 			this.storage.setPos(p == 0, pos);
 		} catch (NumberFormatException e) {
-			TechUtilsMod.LOGGER.warn("WorldEditCUINetworkHandler#handlePacket(): Failed int parsing of position");
-			e.printStackTrace();
+			TechUtilsMod.LOGGER.warn("WorldEditCUINetworkHandler#handlePacket(): Failed int parsing of position", e);
 		}
 	}
 
 	private void handshake() {
-		String message = "v|" + PROTOCOL;
-		ClientPlayNetworking.send(new WECUIPacketHandler.CuiPacket(message));
+		ClientPlayNetworking.send(new CUIPacket("v", String.valueOf(PROTOCOL)));
 	}
 }
