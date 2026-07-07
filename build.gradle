@@ -159,19 +159,21 @@ processResources {
 	inputs.property "loader_dependency", project.loader_dependency
 	inputs.property "malilib_dependency", project.malilib_dependency
 	inputs.property "litematica_dependency", project.litematica_dependency
+	inputs.property "breaks_worldedit_dependency", project.breaks_worldedit_dependency
 	inputs.property "fabric_api_version", project.fabric_api_version
 	filteringCharset "UTF-8"
 
 	filesMatching("fabric.mod.json") {
 		def valueMap = [
-				"id"					: project.mod_id,
-				"name"					: project.mod_name,
-				"version"				: project.mod_version,
-				"minecraft_dependency"	: project.minecraft_dependency,
-				"loader_dependency" 	: project.loader_dependency,
-				"malilib_dependency"	: project.malilib_dependency,
-				"litematica_dependency"	: project.litematica_dependency,
-				"fabric_api_version"	: project.fabric_api_version,
+				"id"							: project.mod_id,
+				"name"							: project.mod_name,
+				"version"						: project.mod_version,
+				"minecraft_dependency"			: project.minecraft_dependency,
+				"loader_dependency"				: project.loader_dependency,
+				"malilib_dependency"			: project.malilib_dependency,
+				"litematica_dependency"			: project.litematica_dependency,
+				"breaks_worldedit_dependency"	: project.breaks_worldedit_dependency,
+				"fabric_api_version"			: project.fabric_api_version,
 		]
 		expand valueMap
 	}
@@ -234,8 +236,18 @@ publishMods {
 			accessToken = key
 			projectId = project.modrinth_id
 			minecraftVersions = [*project.release_versions.split(" ")]
-			requires("litematica")
-			requires("malilib")
+			requires {
+				slug = "litematica"
+				version = project.litematica_dependency_modrinth
+			}
+			requires {
+				slug = "malilib"
+				version = project.malilib_dependency_modrinth
+			}
+			optional {
+				slug = "worldedit"
+				version = project.worldedit_dependency_modrinth
+			}
 		}
 	}
 

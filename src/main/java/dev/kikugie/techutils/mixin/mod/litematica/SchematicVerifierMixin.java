@@ -328,7 +328,7 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 	@ModifyExpressionValue(method = "ignoreStateMismatch(Lfi/dy/masa/litematica/schematic/verifier/SchematicVerifier$BlockMismatch;Z)V", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/schematic/verifier/SchematicVerifier;getMapForMismatchType(Lfi/dy/masa/litematica/schematic/verifier/SchematicVerifier$MismatchType;)Lcom/google/common/collect/ArrayListMultimap;"))
 	private ArrayListMultimap<Pair<BlockState, BlockState>, BlockPos> removeInventoryIfNecessary(ArrayListMultimap<Pair<BlockState, BlockState>, BlockPos> positions, @Local(argsOnly = true) BlockMismatch mismatch) {
 		if (positions == wrongInventoriesPositions) {
-            ignoredInventories.add(positions.get(Pair.of(mismatch.stateExpected(), mismatch.stateFound())).getFirst());
+			ignoredInventories.add(positions.get(Pair.of(mismatch.stateExpected(), mismatch.stateFound())).getFirst());
 			wrongInventories.remove(((BlockMismatchExtension<?>) (Object) mismatch).getInventories$techutils());
 			selectedInventoryMismatches.remove(mismatch);
 		}
