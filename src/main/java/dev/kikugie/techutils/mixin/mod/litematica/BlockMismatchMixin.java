@@ -28,7 +28,7 @@ public class BlockMismatchMixin<InventoryBE extends BlockEntity & Container> imp
 	}
 
 	@ModifyReturnValue(method = "hashCode", at = @At("RETURN"))
-	private int hashInventories(int result, @Local(ordinal = 0) int prime) {
+	private int hashInventories(int result, @Local(name = "prime") int prime) {
 		return prime * result + ((inventories == null) ? 0 : inventories.hashCode());
 	}
 }

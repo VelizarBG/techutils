@@ -13,6 +13,7 @@ import dev.kikugie.techutils.feature.containerscan.verifier.SchematicVerifierExt
 import fi.dy.masa.litematica.gui.GuiSchematicVerifier;
 import fi.dy.masa.litematica.schematic.verifier.SchematicVerifier;
 import net.minecraft.client.Minecraft;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -95,7 +96,8 @@ public abstract class GuiSchematicVerifierMixin {
 		slice = @Slice(
 			from = @At(
 				value = "FIELD",
-				target = "Lfi/dy/masa/litematica/gui/GuiSchematicVerifier$ButtonListener$Type;SET_RESULT_MODE_ALL:Lfi/dy/masa/litematica/gui/GuiSchematicVerifier$ButtonListener$Type;"
+				target = "Lfi/dy/masa/litematica/gui/GuiSchematicVerifier$ButtonListener$Type;SET_RESULT_MODE_ALL:Lfi/dy/masa/litematica/gui/GuiSchematicVerifier$ButtonListener$Type;",
+				opcode = Opcodes.GETSTATIC
 			)
 		),
 		at = @At(
@@ -106,13 +108,13 @@ public abstract class GuiSchematicVerifierMixin {
 			by = 5
 		)
 	)
-	private void addButtons(CallbackInfo ci, @Local(ordinal = 0) LocalIntRef x, @Local(ordinal = 1) int y) throws InvocationTargetException, IllegalAccessException {
+	private void addButtons(CallbackInfo ci, @Local(name = "x") LocalIntRef x, @Local(name = "y") int y) throws InvocationTargetException, IllegalAccessException {
 		var res = (Integer) CREATE_BUTTON.invoke(this, x.get(), y, -1, SET_RESULT_MODE_WRONG_INVENTORIES);
 		x.set(x.get() + res + 4);
 	}
 
 	@ModifyExpressionValue(method = "createButton", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/gui/GuiSchematicVerifier$ButtonListener$Type;ordinal()I", ordinal = 0))
-	private int addWrongInventoriesMap(int ordinal, @Local LocalBooleanRef enabled, @Local LocalRef<String> label) {
+	private int addWrongInventoriesMap(int ordinal, @Local(name = "enabled") LocalBooleanRef enabled, @Local(name = "label") LocalRef<String> label) {
 		if (ordinal == SET_RESULT_MODE_WRONG_INVENTORIES.ordinal()) {
 			label.set(SchematicVerifierExtension.WRONG_INVENTORIES.getDisplayname());
 			enabled.set(resultMode != SchematicVerifierExtension.WRONG_INVENTORIES);

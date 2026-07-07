@@ -115,8 +115,8 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 		// Request entity data from Servux, if the ClientWorld matches, and treat it as not yet loaded
 		EntityDataManager edm = EntityDataManager.getInstance();
 		if ((edm.hasServuxServer() || edm.getIfReceivedBackupPackets())
-				&& Objects.equals(edm.getClientWorld(), this.worldClient)
-				&& !edm.hasCompletedChunk(pos))
+			&& Objects.equals(edm.getClientWorld(), this.worldClient)
+			&& !edm.hasCompletedChunk(pos))
 		{
 			if (edm.hasPendingChunk(pos))
 				return false;

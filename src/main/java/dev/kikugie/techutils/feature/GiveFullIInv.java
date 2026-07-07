@@ -9,6 +9,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Util;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.BundleContents;
@@ -35,8 +36,17 @@ import java.util.function.Supplier;
 public class GiveFullIInv {
 	private static final GiveFullIInv INSTANCE = new GiveFullIInv();
 	private static final Supplier<Boolean> SAFETY = MiscConfigs.FILL_SAFETY::getBooleanValue;
+	private static final Supplier<Integer> COOLDOWN_MS = MiscConfigs.FILL_COOLDOWN::getIntegerValue;
+	private static long lastActivationTimeMs = 0;
 
 	public static boolean onKeybind() {
+		long timeMs = Util.getMillis();
+		long lastActivation = lastActivationTimeMs;
+		lastActivationTimeMs = timeMs;
+		if (timeMs - lastActivation <= COOLDOWN_MS.get()) {
+			INSTANCE.sendError("too_fast");
+			return false;
+		}
 		LocalPlayer player = Minecraft.getInstance().player;
 		assert player != null;
 		if (!player.isCreative()) {
@@ -127,7 +137,7 @@ public class GiveFullIInv {
 	}
 
 	private Optional<ItemStack> handleItem(ItemStack mainHand, ItemStack offHand) {
-		if (!SAFETY.get() && !recursionCheck(mainHand)) {
+		if (SAFETY.get() && !recursionCheck(mainHand)) {
 			sendError("nested_stack");
 			return Optional.empty();
 		}
@@ -136,7 +146,7 @@ public class GiveFullIInv {
 	}
 
 	private Optional<ItemStack> handleBox(ItemStack mainHand, ItemStack offHand) {
-		if (!SAFETY.get() && isShulkerBox(offHand)) {
+		if (SAFETY.get() && isShulkerBox(offHand)) {
 			sendError("nested_box");
 			return Optional.empty();
 		}

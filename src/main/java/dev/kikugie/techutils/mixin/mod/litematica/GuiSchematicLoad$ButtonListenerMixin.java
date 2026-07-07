@@ -10,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,8 +25,8 @@ import java.util.Map;
 public class GuiSchematicLoad$ButtonListenerMixin {
 	@Shadow @Final private GuiSchematicLoad gui;
 
-	@Inject(method = "actionPerformedWithButton", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/gui/GuiSchematicLoad$ButtonListener$Type;LOAD_SCHEMATIC:Lfi/dy/masa/litematica/gui/GuiSchematicLoad$ButtonListener$Type;"))
-	private void replaceItemPredicatesWithPlaceholders(CallbackInfo ci, @Local LitematicaSchematic schematic) {
+	@Inject(method = "actionPerformedWithButton", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/gui/GuiSchematicLoad$ButtonListener$Type;LOAD_SCHEMATIC:Lfi/dy/masa/litematica/gui/GuiSchematicLoad$ButtonListener$Type;", opcode = Opcodes.GETSTATIC))
+	private void replaceItemPredicatesWithPlaceholders(CallbackInfo ci, @Local(name = "schematic") LitematicaSchematic schematic) {
 		if (!LitematicConfigs.REPLACE_ITEM_PREDICATES_WITH_PLACEHOLDERS.getBooleanValue()) {
 			return;
 		}

@@ -5,11 +5,11 @@ import fi.dy.masa.malilib.config.options.*;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 
 public class LitematicConfigs extends Configs.BaseConfigs {
-	public static final ConfigHotkey ROTATE_PLACEMENT = new ConfigHotkey("rotatePlacement", "R",
+	public static final ConfigHotkey ROTATE_PLACEMENT = new ConfigHotkey("rotatePlacement", "",
 		"Rotate selected placement clockwise");
-	public static final ConfigHotkey MIRROR_PLACEMENT = new ConfigHotkey("mirrorPlacement", "Y",
+	public static final ConfigHotkey MIRROR_PLACEMENT = new ConfigHotkey("mirrorPlacement", "",
 		"Cycle through selected placement's mirroring options");
-	public static final ConfigBooleanHotkeyed INVENTORY_SCREEN_OVERLAY = new ConfigBooleanHotkeyed("inventoryScreenOverlay", true, "I, O", KeybindSettings.GUI, """
+	public static final ConfigBooleanHotkeyed INVENTORY_SCREEN_OVERLAY = new ConfigBooleanHotkeyed("inventoryScreenOverlay", true, "", KeybindSettings.GUI, """
 		Show layout of the container according to the litematic placement.
 		Item colors match your placement block colors. By default its:
 		- Light blue: missing item;

@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 import dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay;
 import fi.dy.masa.litematica.render.RenderUtils;
 import net.minecraft.core.BlockPos;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -18,6 +19,7 @@ public class RenderUtilsMixin {
 			from = @At(
 				value = "FIELD",
 				target = "Lfi/dy/masa/malilib/gui/LeftRight;RIGHT:Lfi/dy/masa/malilib/gui/LeftRight;",
+				opcode = Opcodes.GETSTATIC,
 				remap = false
 			)
 		),

@@ -9,10 +9,10 @@ import fi.dy.masa.malilib.config.options.ConfigInteger;
 public class MiscConfigs extends Configs.BaseConfigs {
 	public static final ConfigHotkey OPEN_CONFIG = new ConfigHotkey("openConfig", "U, C",
 		"Opens this screen if none other is open");
-	public static final ConfigBooleanHotkeyed COMPACT_SCOREBOARD = new ConfigBooleanHotkeyed("compactScoreboard", false, "F6", """
+	public static final ConfigBooleanHotkeyed COMPACT_SCOREBOARD = new ConfigBooleanHotkeyed("compactScoreboard", false, "", """
 		Show scoreboard values in compact notation.
 		For example: 123456 -> 123.4K""");
-	public static final ConfigHotkey GIVE_FULL_INV = new ConfigHotkey("giveFullInv", "G", """
+	public static final ConfigHotkey GIVE_FULL_INV = new ConfigHotkey("giveFullInv", "", """
 		Give full inventory of an item with following rules:
 		- Main hand: item; Off hand: none; Result: shulker box of item.
 		- Main hand: item; Off hand: container; Result: container of item.
@@ -27,6 +27,9 @@ public class MiscConfigs extends Configs.BaseConfigs {
 	public static final ConfigBoolean FILL_SAFETY = new ConfigBoolean("fillSafety", true, """
 		Restrict nested containers to prevent crashing yourself.
 		Here be cats and scratches!""");
+	public static final ConfigInteger FILL_COOLDOWN = new ConfigInteger("fillCooldown", 1000, """
+		Cooldown in milliseconds between filling operations
+		""");
 	public static final ConfigHotkey SCAN_INVENTORY = new ConfigHotkey("scanInventory", "I", "");
 	public static final ConfigInteger REQUEST_TIMEOUT = new ConfigInteger("requestTimeout", 60, 1, 1000, false,
 		"Time in game ticks before request is considered failed");
@@ -37,7 +40,8 @@ public class MiscConfigs extends Configs.BaseConfigs {
 			COMPACT_SCOREBOARD,
 			GIVE_FULL_INV,
 			BUNDLE_FILL,
-			FILL_SAFETY
+			FILL_SAFETY,
+			FILL_COOLDOWN
 		));
 	}
 }
