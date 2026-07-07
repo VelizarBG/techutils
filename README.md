@@ -5,6 +5,10 @@ Tech Utils is a mod providing client-side tweaks for [Litematica](https://www.cu
 ## Mod config
 To access mod config open [Mod Menu](https://modrinth.com/mod/modmenu) and select this mod.
 
+## Dependency version lock
+Tech Utils locks to (i.e. requires you to play) a specific version of each of its dependencies (Litematica and WorldEdit) to prevent conflicts from happening when you try to install a newer version of a dependency.
+You are on your own if you decide to remove these restrictions using [Dependency Overrides](https://docs.fabricmc.net/players/troubleshooting/dependency-overrides). Do not report problems if you do this.
+
 ## Features
 
 - Inventory Verifier addon to Litematica's Schematic Verifier  
