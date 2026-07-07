@@ -1,5 +1,7 @@
 package dev.kikugie.techutils.mixin.mod.litematica;
 
+import com.llamalad7.mixinextras.expression.Definition;
+import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.kikugie.techutils.config.LitematicConfigs;
@@ -14,14 +16,17 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(value = WidgetSchematicBrowser.class, remap = false)
 public abstract class WidgetSchematicBrowserMixin {
-	@ModifyExpressionValue(method = "drawSelectedSchematicInfo", at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"))
+	@Definition(id = "cachedPreviewImages", field = "Lfi/dy/masa/litematica/gui/widgets/WidgetSchematicBrowser;cachedPreviewImages:Ljava/util/Map;")
+	@Definition(id = "get", method = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;")
+	@Expression("this.cachedPreviewImages.get(?)")
+	@ModifyExpressionValue(method = "drawSelectedSchematicInfo", at = @At("MIXINEXTRAS:EXPRESSION"))
 	private Object drawPreview(
 		Object original,
 		@Local(argsOnly = true) @Nullable WidgetFileBrowserBase.DirectoryEntry entry,
 		@Local(argsOnly = true) DrawContext drawContext,
-		@Local(ordinal = 0) int x,
-		@Local(ordinal = 1) int y,
-		@Local(ordinal = 2) int height
+		@Local(name = "x") int x,
+		@Local(name = "y") int y,
+		@Local(name = "height") int height
 	) {
 		if (!LitematicConfigs.RENDER_PREVIEW.getBooleanValue()
 			|| (!LitematicConfigs.OVERRIDE_PREVIEW.getBooleanValue() && original != null)
