@@ -192,15 +192,15 @@ publishMods {
 			minecraftVersions = [*project.release_versions.split(" ")]
 			requires {
 				slug = "litematica"
-				version = project.litematica_dependency
+				version = project.litematica_dependency_modrinth
 			}
 			requires {
 				slug = "malilib"
-				version = project.malilib_dependency
+				version = project.malilib_dependency_modrinth
 			}
 			optional {
 				slug = "worldedit"
-				version = project.breaks_worldedit_dependency
+				version = project.worldedit_dependency_modrinth
 			}
 		}
 	}
