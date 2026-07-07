@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Pseudo
 @Mixin(value = org.enginehub.worldeditcui.fabric.network.FabricCUIPacketHandler.class, remap = false)
-public class FabricCUIPacketHandler {
+public class FabricCUIPacketHandlerMixin {
 	@Inject(method = "registerClient", at = @At("RETURN"))
 	private static void initWESync(CallbackInfo ci) {
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> WorldEditSync.init());
