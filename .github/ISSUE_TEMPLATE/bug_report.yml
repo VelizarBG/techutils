@@ -22,24 +22,6 @@ body:
       placeholder: 0.27.9
     validations:
       required: true
-  - type: checkboxes
-    id: version-check
-    attributes:
-      label: Version checks
-      description: Check that all your mods are up to date!
-      options:
-        - label: >-
-            My TechUtils version matches the latest on
-            https://modrinth.com/mod/techutils/versions
-          required: true
-        - label: >-
-            My Litematica version matches the latest on
-            https://modrinth.com/mod/litematica/versions
-          required: true
-        - label: >-
-            My MaliLib version matches the latest on
-            https://modrinth.com/mod/malilib/versions
-          required: true
   - type: textarea
     id: bug-description
     attributes:
