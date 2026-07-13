@@ -1,0 +1,40 @@
+name: Bug report
+description: Report bugs with the mod
+body:
+  - type: input
+    id: mc-version
+    attributes:
+      label: Minecraft version
+      placeholder: 1.21.1 | 26.1
+    validations:
+      required: true
+  - type: input
+    id: techutils-version
+    attributes:
+      label: TechUtils version
+      placeholder: 0.7.0
+    validations:
+      required: true
+  - type: input
+    id: litematica-version
+    attributes:
+      label: Litematica version
+      placeholder: 0.27.9
+    validations:
+      required: true
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Issue description
+      description: Describe what is wrong.
+    validations:
+      required: true
+  - type: input
+    id: game-logs
+    attributes:
+      label: Game logs
+      description: >-
+        Upload your game logs to https://mclo.gs/ and paste the link here if relevant. 
+        See [Fabric docs](https://docs.fabricmc.net/players/troubleshooting/uploading-logs#locating-logs)
+        to learn where to find them.
+      placeholder: https://mclo.gs/...
