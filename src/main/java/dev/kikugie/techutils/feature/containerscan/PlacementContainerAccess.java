@@ -3,6 +3,8 @@ package dev.kikugie.techutils.feature.containerscan;
 import dev.kikugie.techutils.TechUtilsMod;
 import dev.kikugie.techutils.util.ContainerUtils;
 import dev.kikugie.techutils.util.LocalPlacementPos;
+import fi.dy.masa.malilib.util.data.tag.CompoundData;
+import fi.dy.masa.malilib.util.data.tag.converter.DataConverterNbt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -110,13 +112,13 @@ public final class PlacementContainerAccess {
 
 	@Nullable
 	private static SimpleContainer getItems(LocalPlacementPos placementPos) {
-		Map<BlockPos, CompoundTag> blockEntities = placementPos.placement().getSchematic()
+		Map<BlockPos, CompoundData> blockEntities = placementPos.placement().getSchematic()
 			.getBlockEntityMapForRegion(placementPos.region());
 		// No block entity map for the region. Shouldn't be possible unless it was manually modified
 		if (blockEntities == null)
 			return null;
 
-		CompoundTag nbt = blockEntities.get(placementPos.pos());
+		CompoundTag nbt = DataConverterNbt.toVanillaCompound(blockEntities.get(placementPos.pos()));
 		// No such entry in the map
 		if (nbt == null)
 			return null;

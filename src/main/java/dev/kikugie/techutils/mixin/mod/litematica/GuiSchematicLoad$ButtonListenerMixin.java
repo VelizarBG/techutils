@@ -5,8 +5,9 @@ import dev.kikugie.techutils.config.LitematicConfigs;
 import dev.kikugie.techutils.util.ItemPredicateUtils;
 import fi.dy.masa.litematica.gui.GuiSchematicLoad;
 import fi.dy.masa.litematica.schematic.LitematicaSchematic;
+import fi.dy.masa.malilib.util.data.tag.CompoundData;
+import fi.dy.masa.malilib.util.data.tag.converter.DataConverterNbt;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -34,14 +35,14 @@ public class GuiSchematicLoad$ButtonListenerMixin {
 		var accessedSchematic = ((LitematicaSchematicAccessor) schematic);
 		var containers = accessedSchematic.getBlockContainers();
 		var blockEntities = accessedSchematic.getTileEntities();
-		Map<String, Map<BlockPos, CompoundTag>> processedBlockEntities = new HashMap<>();
+		Map<String, Map<BlockPos, CompoundData>> processedBlockEntities = new HashMap<>();
 		var registryAccess = gui.mc.level.registryAccess();
 
 		for (var regionEntry : blockEntities.entrySet()) {
 			String region = regionEntry.getKey();
 			var regionBlockEntities = regionEntry.getValue();
 			var regionContainer = containers.get(region);
-			Map<BlockPos, CompoundTag> processedRegionBlockEntities = new HashMap<>();
+			Map<BlockPos, CompoundData> processedRegionBlockEntities = new HashMap<>();
 
 			for (var entry : regionBlockEntities.entrySet()) {
 				BlockPos blockEntityPos = entry.getKey();
@@ -49,7 +50,7 @@ public class GuiSchematicLoad$ButtonListenerMixin {
 				var blockEntity = BlockEntity.loadStatic(
 					blockEntityPos,
 					regionContainer.get(blockEntityPos.getX(), blockEntityPos.getY(), blockEntityPos.getZ()),
-					blockEntityNbt,
+					DataConverterNbt.toVanillaCompound(blockEntityNbt),
 					registryAccess
 				);
 
@@ -60,7 +61,7 @@ public class GuiSchematicLoad$ButtonListenerMixin {
 							inventory.setItem(i, placeholder);
 						}
 					}
-					processedRegionBlockEntities.put(blockEntityPos, blockEntity.saveWithFullMetadata(registryAccess));
+					processedRegionBlockEntities.put(blockEntityPos, DataConverterNbt.fromVanillaCompound(blockEntity.saveWithFullMetadata(registryAccess)));
 				} else {
 					processedRegionBlockEntities.put(blockEntityPos, blockEntityNbt);
 				}
