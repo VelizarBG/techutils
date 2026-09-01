@@ -3,10 +3,13 @@ package dev.kikugie.techutils;
 import dev.kikugie.techutils.command.IsorenderSelectionCommand;
 import dev.kikugie.techutils.command.ItemPredicateCommand;
 import dev.kikugie.techutils.config.malilib.InitHandler;
+import dev.kikugie.techutils.event.PlacementEventHandler;
 import dev.kikugie.techutils.feature.containerscan.handlers.InteractionHandler;
 import dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay;
 import dev.kikugie.techutils.feature.worldedit.WorldEditSync;
 import dev.kikugie.techutils.util.ResponseMuffler;
+import fi.dy.masa.litematica.schematic.placement.SchematicPlacementEventFlag;
+import fi.dy.masa.litematica.schematic.placement.SchematicPlacementEventHandler;
 import fi.dy.masa.malilib.event.InitializationHandler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -41,6 +44,7 @@ public class TechUtilsMod implements ClientModInitializer {
 			}
 			QUEUED_END_CLIENT_TICK_TASKS.clear();
 		});
+		SchematicPlacementEventHandler.getInstance().registerSchematicPlacementEventListener(new PlacementEventHandler(), List.of(SchematicPlacementEventFlag.ALL_EVENTS));
 	}
 
 	private void registerCommands() {
