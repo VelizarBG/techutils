@@ -3,11 +3,10 @@ package dev.kikugie.techutils.feature.containerscan;
 import dev.kikugie.techutils.TechUtilsMod;
 import dev.kikugie.techutils.util.ContainerUtils;
 import dev.kikugie.techutils.util.LocalPlacementPos;
+import fi.dy.masa.malilib.util.InventoryUtils;
 import fi.dy.masa.malilib.util.data.tag.CompoundData;
-import fi.dy.masa.malilib.util.data.tag.converter.DataConverterNbt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.CompoundContainer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -118,20 +117,12 @@ public final class PlacementContainerAccess {
 		if (blockEntities == null)
 			return null;
 
-		CompoundTag nbt = DataConverterNbt.toVanillaCompound(blockEntities.get(placementPos.pos()));
+		CompoundData nbt = blockEntities.get(placementPos.pos());
 		// No such entry in the map
 		if (nbt == null)
 			return null;
 
-		var registryAccess = Minecraft.getInstance().level.registryAccess();
-		var blockEntity = BlockEntity.loadStatic(
-			placementPos.pos(),
-			placementPos.blockState(),
-			nbt,
-			registryAccess
-		);
-
-		if (!(blockEntity instanceof Container schematicInventory)) {
+		if (!(InventoryUtils.getDataInventory(nbt) instanceof Container schematicInventory)) {
 			return null;
 		}
 
