@@ -23,6 +23,7 @@
         "mod.litematica.ItemUtilsAccessor",
         "mod.litematica.LitematicaSchematicAccessor",
         "mod.litematica.OverlayRendererMixin",
+        "mod.litematica.PlacementManagerTaskRebuildMixin",
         "mod.litematica.RayTraceUtilsMixin",
         "mod.litematica.RenderUtilsMixin",
         "mod.litematica.SchematicVerifierMixin",
