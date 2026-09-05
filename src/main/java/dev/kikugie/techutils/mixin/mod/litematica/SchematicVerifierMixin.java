@@ -32,6 +32,7 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.CrafterBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.Property;
@@ -165,7 +166,7 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 			return;
 		}
 
-		var itemsForStates = ItemUtilsAccessor.getItemsForStates();
+		boolean foundMismatch = false;
 		boolean verifyItemComponents = LitematicConfigs.VERIFY_ITEM_COMPONENTS.getBooleanValue();
 		for (int i = size - 1; i >= 0; i--) {
 			var expectedStack = expected.getItem(i);
@@ -183,14 +184,30 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 					|| verifyItemComponents
 					&& !Objects.equals(expectedStack.getComponents(), foundStack.getComponents())
 			) {
-				var pos = MUTABLE_POS.immutable();
-				//noinspection unchecked
-				var pair = populateTooltipsIfNecessary((InventoryBE) expected, (InventoryBE) found, verifyItemComponents);
-				wrongInventories.add(pair);
-				warCrime(pair.getLeft(), pair.getRight(), itemsForStates, pos);
+				foundMismatch = true;
 				break;
 			}
 		}
+		if (foundMismatch || !areCrafterSlotStatesEqual(expected, found, size)) {
+			var pos = MUTABLE_POS.immutable();
+			//noinspection unchecked
+			var pair = populateTooltipsIfNecessary((InventoryBE) expected, (InventoryBE) found, verifyItemComponents);
+			wrongInventories.add(pair);
+			warCrime(pair.getLeft(), pair.getRight(), ItemUtilsAccessor.getItemsForStates(), pos);
+		}
+	}
+
+	@Unique
+	private boolean areCrafterSlotStatesEqual(Container expected, Container found, int slots) {
+		if (expected instanceof CrafterBlockEntity expectedCrafter
+			&& found instanceof CrafterBlockEntity foundCrafter) {
+			for (int i = slots - 1; i >= 0; i--) {
+				if (expectedCrafter.isSlotDisabled(i) != foundCrafter.isSlotDisabled(i)) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	/**

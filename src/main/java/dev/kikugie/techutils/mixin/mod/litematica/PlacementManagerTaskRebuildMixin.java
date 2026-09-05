@@ -13,12 +13,12 @@ import java.util.List;
 
 @Mixin(PlacementManagerTaskRebuild.class)
 public class PlacementManagerTaskRebuildMixin {
-    @ModifyExpressionValue(method = "lambda$buildTask$0", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/schematic/placement/SchematicPlacementManager;getAllSchematicsTouchingChunk(Lnet/minecraft/world/level/ChunkPos;)Ljava/util/List;"))
-    private List<SchematicPlacement> sortPlacements(List<SchematicPlacement> original) {
-        SchematicPlacementManager schematicPlacementManager = DataManager.getSchematicPlacementManager();
-        SchematicPlacement selectedPlacement = schematicPlacementManager.getSelectedSchematicPlacement();
-        // Make sure the selected placement is last so **its** inventories are placed in the schematic world
-        original.sort(Comparator.comparing(placement -> placement == selectedPlacement));
-        return original;
-    }
+	@ModifyExpressionValue(method = "lambda$buildTask$0", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/schematic/placement/SchematicPlacementManager;getAllSchematicsTouchingChunk(Lnet/minecraft/world/level/ChunkPos;)Ljava/util/List;"))
+	private List<SchematicPlacement> sortPlacements(List<SchematicPlacement> original) {
+		SchematicPlacementManager schematicPlacementManager = DataManager.getSchematicPlacementManager();
+		SchematicPlacement selectedPlacement = schematicPlacementManager.getSelectedSchematicPlacement();
+		// Make sure the selected placement is last so **its** inventories are placed in the schematic world
+		original.sort(Comparator.comparing(placement -> placement == selectedPlacement));
+		return original;
+	}
 }

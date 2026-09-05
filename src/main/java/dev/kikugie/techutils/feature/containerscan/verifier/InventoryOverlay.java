@@ -8,6 +8,7 @@ import dev.kikugie.techutils.util.ContainerUtils;
 import dev.kikugie.techutils.util.ItemPredicateUtils;
 import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.litematica.gui.GuiSchematicVerifier;
+import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.malilib.util.WorldUtils;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.advancements.predicates.ItemPredicate;
@@ -15,6 +16,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.state.gui.GuiItemRenderState;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.CrafterScreen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -26,6 +28,7 @@ import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.CrafterBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
@@ -68,7 +71,7 @@ public class InventoryOverlay {
 	}
 
 	public static void onScreenPostContainerClick() {
-		if (lastClickedPos == null)
+		if (!LitematicConfigs.INVENTORY_SCREEN_OVERLAY.getBooleanValue() || lastClickedPos == null)
 			return;
 		BlockPos pos = lastClickedPos;
 		Level level = WorldUtils.getBestWorld(Minecraft.getInstance());
@@ -102,8 +105,18 @@ public class InventoryOverlay {
 						break;
 					}
 				}
-				if (validSlot != null)
+				if (validSlot != null) {
 					entry.setWorldInventory(validSlot.container);
+					if (screen instanceof CrafterScreen crafterScreen
+						&& SchematicWorldHandler.getSchematicWorld().getBlockEntity(pos) instanceof CrafterBlockEntity schematicCrafter
+					) {
+						var gameMode = Minecraft.getInstance().gameMode;
+						int containerId = crafterScreen.getMenu().containerId;
+						for (int i = schematicCrafter.getContainerSize() - 1; i >= 0; i--) {
+							gameMode.handleSlotStateChanged(i, containerId, !schematicCrafter.isSlotDisabled(i));
+						}
+					}
+				}
 				return true;
 			}
 		});
