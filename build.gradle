@@ -1,6 +1,6 @@
 plugins {
-	id 'net.fabricmc.fabric-loom'
-	id 'me.modmuss50.mod-publish-plugin'
+	alias libs.plugins.fabric.loom
+	alias libs.plugins.mod.publish
 	id 'maven-publish'
 }
 
@@ -8,7 +8,7 @@ loom {
 	accessWidenerPath = file("src/main/resources/techutils.accesswidener")
 }
 
-version = project.mod_version + '+' + project.minecraft_version
+version = project.mod_version + '+' + libs.versions.minecraft.get()
 group = project.maven_group
 
 base {
@@ -129,21 +129,22 @@ afterEvaluate {
 dependencies {
 //	vineflowerDecompilerClasspath "org.vineflower:vineflower:1.12.0-SNAPSHOT"
 
-	// To change the versions see the gradle.properties file
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	// To change the versions see the libs.versions.toml file
+	minecraft libs.minecraft
+	implementation libs.fabric.loader
 
-	implementation include("com.github.Chocohead:Fabric-ASM:v${project.fabric_asm_version}")
+	implementation libs.fabric.asm
+	include libs.fabric.asm
 
-	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-	api("com.terraformersmc:modmenu:${project.modmenu_version}")
-	implementation("fi.dy.masa.malilib:malilib-fabric-${project.malilib_version}")
-	implementation("fi.dy.masa.litematica:litematica-fabric-${project.litematica_version}")
-	implementation("fi.dy.masa.tweakeroo:tweakeroo-fabric-${project.tweakeroo_version}")
+	implementation libs.fabric.api
+	api libs.modmenu
+	implementation libs.malilib
+	implementation libs.litematica
+	implementation libs.tweakeroo
 
-	compileOnly "com.sk89q.worldedit:worldedit-fabric-mc${project.worldedit_version}"
-	compileOnly "org.enginehub.worldeditcui-protocol:worldeditcui-protocol-common-mc${project.worldeditcui_protocol_version}"
-	compileOnly "org.enginehub.worldeditcui-protocol:worldeditcui-protocol-fabric-mc${project.worldeditcui_protocol_version}"
+	compileOnly libs.worldedit
+    compileOnly libs.worldeditcui.protocol.common
+    compileOnly libs.worldeditcui.protocol.fabric
 }
 
 processResources {
@@ -155,7 +156,7 @@ processResources {
 	inputs.property "malilib_dependency", project.malilib_dependency
 	inputs.property "litematica_dependency", project.litematica_dependency
 	inputs.property "breaks_worldedit_dependency", project.breaks_worldedit_dependency
-	inputs.property "fabric_api_version", project.fabric_api_version
+	inputs.property "fabric_api_version", libs.versions.fabric.api.get()
 	filteringCharset "UTF-8"
 
 	filesMatching("fabric.mod.json") {
@@ -168,7 +169,7 @@ processResources {
 				"malilib_dependency"			: project.malilib_dependency,
 				"litematica_dependency"			: project.litematica_dependency,
 				"breaks_worldedit_dependency"	: project.breaks_worldedit_dependency,
-				"fabric_api_version"			: project.fabric_api_version,
+				"fabric_api_version"			: libs.versions.fabric.api.get(),
 		]
 		expand valueMap
 	}
@@ -216,7 +217,6 @@ publishing {
 
 publishMods {
 	file = jar.archiveFile
-	additionalFiles.from(sourcesJar.archiveFile)
 	version = "$project.version"
 	displayName = "Technical Utilities $project.mod_version+$project.title_version"
 	type = STABLE
@@ -242,6 +242,9 @@ publishMods {
 			optional {
 				slug = "worldedit"
 				version = project.worldedit_dependency_modrinth
+			}
+			additionalFile(sourcesJar.archiveFile) {
+				type = SOURCES_JAR
 			}
 		}
 	}

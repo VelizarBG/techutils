@@ -1,0 +1,39 @@
+[versions]
+minecraft                    = "26.2"
+fabric-loader                = { strictly = "0.19.5" }
+fabric-api                   = { strictly = "0.153.0+26.2" }
+fabric-asm                   = "v2.3"
+modmenu                      = "20.0.0-beta.4"
+malilib                      = { strictly = "0.29.6" }
+litematica                   = "0.28.8"
+tweakeroo                    = "0.29.5"
+worldedit                    = "7.4.5"
+worldeditcui-protocol-common = "4.0.3"
+worldeditcui-protocol-fabric = "4.0.3"
+
+# Plugins
+fabric-loom = "1.17.20"
+mod-publish = "2.2.+"
+
+[libraries]
+minecraft     = { module = "com.mojang:minecraft"                         , version.ref = "minecraft"     }
+fabric-loader = { module = "net.fabricmc:fabric-loader"                   , version.ref = "fabric-loader" }
+fabric-asm    = { module = "com.github.Chocohead:Fabric-ASM"              , version.ref = "fabric-asm"    }
+fabric-api    = { module = "net.fabricmc.fabric-api:fabric-api"           , version.ref = "fabric-api"    }
+modmenu       = { module = "com.terraformersmc:modmenu"                   , version.ref = "modmenu"       }
+malilib       = { module = "fi.dy.masa.malilib:malilib-fabric-26.2"       , version.ref = "malilib"       }
+litematica    = { module = "fi.dy.masa.litematica:litematica-fabric-26.2" , version.ref = "litematica"    }
+tweakeroo     = { module = "fi.dy.masa.tweakeroo:tweakeroo-fabric-26.2"   , version.ref = "tweakeroo"     }
+worldedit     = { module = "com.sk89q.worldedit:worldedit-fabric-mc26.2"  , version.ref = "worldedit"     }
+
+[libraries.worldeditcui-protocol-common]
+module = "org.enginehub.worldeditcui-protocol:worldeditcui-protocol-common-mc26.2"
+version.ref = "worldeditcui-protocol-common"
+
+[libraries.worldeditcui-protocol-fabric]
+module = "org.enginehub.worldeditcui-protocol:worldeditcui-protocol-fabric-mc26.2"
+version.ref = "worldeditcui-protocol-fabric"
+
+[plugins]
+fabric-loom = { id = "net.fabricmc.fabric-loom"       , version.ref = "fabric-loom" }
+mod-publish = { id = "me.modmuss50.mod-publish-plugin", version.ref = "mod-publish" }
