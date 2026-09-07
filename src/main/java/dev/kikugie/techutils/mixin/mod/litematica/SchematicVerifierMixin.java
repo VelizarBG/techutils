@@ -2,6 +2,8 @@ package dev.kikugie.techutils.mixin.mod.litematica;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
+import com.llamalad7.mixinextras.expression.Definition;
+import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -46,8 +48,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -91,20 +91,12 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 		return isLoaded && canProcessChunk(pos);
 	}
 
-	@Redirect(
-		method = "verifyChunks",
-		slice = @Slice(
-			from = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/world/ChunkManagerSchematic;hasChunk(II)Z")
-		),
-		at = @At(
-			value = "INVOKE",
-			target = "Lnet/minecraft/client/multiplayer/ClientLevel;getChunk(II)Lnet/minecraft/world/level/chunk/LevelChunk;",
-			ordinal = 0,
-			remap = true
-		)
-	)
-	private LevelChunk pickBestWorld(ClientLevel clientLevel, int x, int z) {
-		return (WorldUtils.getBestWorld(mc) instanceof Level level ? level : clientLevel).getChunk(x, z);
+	@Definition(id = "worldClient", field = "Lfi/dy/masa/litematica/schematic/verifier/SchematicVerifier;worldClient:Lnet/minecraft/client/multiplayer/ClientLevel;")
+	@Definition(id = "getChunk", method = "Lnet/minecraft/client/multiplayer/ClientLevel;getChunk(II)Lnet/minecraft/world/level/chunk/LevelChunk;")
+	@Expression("this.worldClient.getChunk(?, ?)")
+	@WrapOperation(method = "verifyChunks", at = @At("MIXINEXTRAS:EXPRESSION"))
+	private LevelChunk pickBestWorld(ClientLevel clientLevel, int x, int z, Operation<LevelChunk> original) {
+		return WorldUtils.getBestWorld(mc) instanceof Level level ? level.getChunk(x, z) : original.call(clientLevel, x, z);
 	}
 
 	/**
