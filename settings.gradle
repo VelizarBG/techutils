@@ -7,9 +7,12 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+}
 
-    plugins {
-        id 'net.fabricmc.fabric-loom' version loom_version
-        id 'me.modmuss50.mod-publish-plugin' version mod_publish_version
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            from(files('libs.versions.toml'))
+        }
     }
 }
