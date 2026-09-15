@@ -1,140 +1,113 @@
 package dev.kikugie.techutils.util;
 
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import com.google.common.collect.MapMaker;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JavaOps;
 import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.advancements.criterion.MinMaxBounds;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.component.predicates.DataComponentPredicate;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.RegistryOps;
-import net.minecraft.util.ProblemReporter;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.util.Util;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.ItemContainerContents;
-import net.minecraft.world.item.component.TypedEntityData;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.item.component.ItemLore;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Stream;
 
 public final class ItemPredicateUtils {
-	public static final String PREDICATE_ID = "techutils:item_predicate";
-	private static final Map<String, ItemPredicate> PREDICATE_CACHE = new HashMap<>();
-	private static final Reference2ReferenceOpenHashMap<ItemPredicate, List<Component>> PRETTIFIED_PREDICATES = new Reference2ReferenceOpenHashMap<>();
+	public static final int VERSION = 1;
+	public static final String VERSION_ID = "version";
+	public static final String ROOT_PREDICATE_ID = "techutils:item_predicate";
+	public static final String RAW_PREDICATE_ID = "predicate";
+	public static final String PLACEHOLDER_ID = "placeholder";
+	public static final String ITEM_PREDICATE_WITHIN_PREDICATE = "predicate";
+	public static final String STYLE_MARKER = ROOT_PREDICATE_ID;
+	private static final ConcurrentMap<ItemStack, Predicate> PREDICATE_PER_STACK = new MapMaker().weakKeys().makeMap();
+	private static final ConcurrentMap<CompoundTag, Predicate> PREDICATE_PER_ROOT_PREDICATE = new MapMaker().weakValues().makeMap();
+
+	private record Predicate(ItemPredicate predicate, List<Component> prettyPredicate) {}
 
 	private ItemPredicateUtils() {}
 
-	public static ItemStack createPredicateStack(String rawPredicate, ItemStack placeholder) {
-		TagValueOutput nbtOutput = TagValueOutput.createWithoutContext(ProblemReporter.DISCARDING);
-		ItemStack stack = Items.COMMAND_BLOCK.getDefaultInstance();
-
-		nbtOutput.putString("Command", rawPredicate);
-		BlockItem.setBlockEntityData(stack, BlockEntityType.COMMAND_BLOCK, nbtOutput);
+	public static ItemStack makePredicateStack(String rawPredicateString, ItemStack stack, ItemStack placeholder) {
+		if (stack.isEmpty())
+			return ItemStack.EMPTY;
 
 		setPlaceholder(stack, placeholder);
 
-		stack.update(
-			DataComponents.CUSTOM_DATA,
-			CustomData.EMPTY,
-			customData -> customData.update(custom -> custom.put(PREDICATE_ID, new CompoundTag()))
-		);
+		DataResult<CompoundTag> rawPredicate = TagParser.FLATTENED_CODEC.parse(JavaOps.INSTANCE, rawPredicateString);
+		if (rawPredicate.isSuccess()) {
+			stack.update(
+				DataComponents.CUSTOM_DATA,
+				CustomData.EMPTY,
+				customData -> customData.update(data -> {
+					var root = data.getCompoundOrEmpty(ROOT_PREDICATE_ID);
+					root.put(RAW_PREDICATE_ID, rawPredicate.getOrThrow());
+					root.putInt(VERSION_ID, VERSION);
+					data.put(ROOT_PREDICATE_ID, root);
+				})
+			);
+		} else {
+			throw new RuntimeException("Failed to parse predicate NBT: " + rawPredicate.error().get().message());
+		}
 
-		stack.set(DataComponents.CUSTOM_NAME, Component.literal("Item Predicate")
-			.withStyle(style -> style.withColor(ChatFormatting.WHITE).withItalic(false))
-		);
+		var style = Style.EMPTY.withColor(ChatFormatting.WHITE).withItalic(false).withInsertion(STYLE_MARKER);
+		stack.set(DataComponents.CUSTOM_NAME, Component.literal("Item Predicate").setStyle(style));
+		stack.set(DataComponents.LORE, ItemLore.EMPTY.withLineAdded(
+			Component.literal("Install the techutils mod for Item Predicate support.").setStyle(style)));
 
 		return stack;
 	}
 
 	public static boolean isPredicate(ItemStack stack) {
-		return stack.getItem() == Items.COMMAND_BLOCK
-			&& stack.get(DataComponents.CUSTOM_DATA) instanceof CustomData customData
-			&& customData.copyTag().contains(PREDICATE_ID);
+		return stack.get(DataComponents.CUSTOM_DATA) instanceof CustomData customData
+			&& customData.copyTag().contains(ROOT_PREDICATE_ID);
 	}
 
-	public static String getRawPredicate(ItemStack stack) {
-		return stack.get(DataComponents.BLOCK_ENTITY_DATA) instanceof TypedEntityData<BlockEntityType<?>> data
-			? data.copyTagWithoutId().getString("Command").orElse("")
-			: "";
+	public static void modifyTooltip(ItemStack stack, List<Component> lines) {
+		if (!isPredicate(stack))
+			return;
+
+		lines.removeIf(text -> Objects.equals(text.getStyle().getInsertion(), STYLE_MARKER)
+			|| text.getContents() instanceof TranslatableContents contents && contents.getKey().contains("op_warning"));
+		lines.addAll(getPrettyPredicate(stack));
 	}
 
-	public static @Nullable ItemPredicate getPredicate(ItemStack stack) {
-		if (!isPredicate(stack)) {
-			return null;
-		}
-
-		var rawPredicate = getRawPredicate(stack);
-		return getPredicate(rawPredicate);
+	public static @Nullable CompoundTag getRawPredicate(ItemStack stack) {
+		return getRootPredicate(stack) instanceof CompoundTag rootPredicate
+			? rootPredicate.getCompound(RAW_PREDICATE_ID).orElse(null)
+			: null;
 	}
 
-	public static ItemPredicate getPredicate(String rawPredicate) {
-		if (PREDICATE_CACHE.containsKey(rawPredicate)) {
-			return PREDICATE_CACHE.get(rawPredicate);
-		}
-
-		int startingTokenIndex = rawPredicate.indexOf('{');
-		if (startingTokenIndex == -1)
-			return saveFailedPredicate(rawPredicate, "No item predicate is present!");
-
-		rawPredicate = rawPredicate.substring(startingTokenIndex);
-
-		CompoundTag nbt;
-		try {
-			nbt = TagParser.parseCompoundFully(rawPredicate).getCompound("predicate").orElseGet(CompoundTag::new);
-			if (nbt.isEmpty()) {
-				throw new IllegalArgumentException("No item predicate is present!");
-			}
-		} catch (Throwable throwable) {
-			return saveFailedPredicate(rawPredicate, throwable.getMessage());
-		}
-		var result = ItemPredicate.CODEC.parse(RegistryOps.create(NbtOps.INSTANCE, Minecraft.getInstance().level.registryAccess()), nbt);
-		if (result.isSuccess()) {
-			var predicate = result.getOrThrow();
-			PREDICATE_CACHE.put(rawPredicate, predicate);
-			PRETTIFIED_PREDICATES.put(predicate, ContainerUtils.prettifyNbt(nbt));
-
-			return predicate;
-		} else {
-			return saveFailedPredicate(rawPredicate, result.error().get().message());
-		}
+	public static @Nullable ItemPredicate getItemPredicate(ItemStack stack) {
+		return getPredicate(stack) instanceof Predicate predicate ? predicate.predicate() : null;
 	}
 
 	public static List<Component> getPrettyPredicate(ItemStack predicateStack) {
-		var predicate = ItemPredicateUtils.getPredicate(predicateStack);
+		var predicate = getPredicate(predicateStack);
 		if (predicate == null) {
 			return List.of();
 		}
 
-		if (ItemPredicateUtils.getPlaceholder(predicateStack) instanceof ItemStack placeholder) {
-			var nbt = new CompoundTag();
-			var registryAccess = Minecraft.getInstance().level.registryAccess();
-			nbt.put("placeholder", toNbtAllowEmpty(placeholder, registryAccess));
-			var lines = new ArrayList<>(PRETTIFIED_PREDICATES.get(predicate));
-			lines.addAll(ContainerUtils.prettifyNbt(nbt));
-			return lines;
-		} else {
-			return Collections.unmodifiableList(PRETTIFIED_PREDICATES.get(predicate));
-		}
+		return Collections.unmodifiableList(predicate.prettyPredicate());
 	}
 
 	public static List<Component> getErrorLines(ItemStack stack, ItemPredicate predicate) {
@@ -208,28 +181,84 @@ public final class ItemPredicateUtils {
 		return lines;
 	}
 
-	@Nullable
-	public static ItemStack getPlaceholder(ItemStack stack) {
-		return isPredicate(stack) && stack.get(DataComponents.CONTAINER) instanceof ItemContainerContents contents
-			? contents.copyOne()
-			: null;
+	public static @Nullable ItemStack getPlaceholder(ItemStack stack) {
+		CompoundTag root;
+		if (!(stack.get(DataComponents.CUSTOM_DATA) instanceof CustomData customData)
+			|| (root = customData.copyTag().getCompound(ROOT_PREDICATE_ID).orElse(null)) == null
+		) {
+			return null;
+		}
+		var ops = Minecraft.getInstance().level.registryAccess().createSerializationContext(NbtOps.INSTANCE);
+		return root.read(PLACEHOLDER_ID, ItemStack.CODEC, ops).orElse(null);
 	}
 
 	public static void setPlaceholder(ItemStack predicateStack, ItemStack placeholder) {
 		if (placeholder == null || placeholder.isEmpty()) {
-			predicateStack.remove(DataComponents.CONTAINER);
+			if (predicateStack.get(DataComponents.CUSTOM_DATA) instanceof CustomData customData) {
+				customData.update(data -> data.getCompoundOrEmpty(ROOT_PREDICATE_ID).remove(PLACEHOLDER_ID));
+			}
 		} else {
-			predicateStack.set(
-				DataComponents.CONTAINER,
-				ItemContainerContents.fromItems(List.of(placeholder))
+			var ops = Minecraft.getInstance().level.registryAccess().createSerializationContext(NbtOps.INSTANCE);
+			predicateStack.update(DataComponents.CUSTOM_DATA, CustomData.EMPTY, customData ->
+				customData.update(data -> {
+					var root = data.getCompoundOrEmpty(ROOT_PREDICATE_ID);
+					root.store(PLACEHOLDER_ID, ItemStack.CODEC, ops, placeholder);
+					data.put(ROOT_PREDICATE_ID, root);
+				})
 			);
 		}
 	}
 
-	private static ItemPredicate saveFailedPredicate(String rawPredicate, String message) {
-		var markerPredicate = ItemPredicate.Builder.item().withCount(MinMaxBounds.Ints.exactly(-1)).build();
-		PREDICATE_CACHE.put(rawPredicate, markerPredicate);
+	private static @Nullable CompoundTag getRootPredicate(ItemStack stack) {
+		return stack.get(DataComponents.CUSTOM_DATA) instanceof CustomData data
+			? data.copyTag().getCompound(ROOT_PREDICATE_ID).orElse(null)
+			: null;
+	}
 
+	private static @Nullable Predicate getPredicate(ItemStack stack) {
+		if (PREDICATE_PER_STACK.get(stack) instanceof Predicate predicate) {
+			return predicate;
+		}
+
+		if (getRootPredicate(stack) instanceof CompoundTag rootPredicate) {
+			Predicate predicate = getPredicate(rootPredicate);
+			PREDICATE_PER_STACK.put(stack, predicate);
+			return predicate;
+		}
+		return null;
+	}
+
+	private static Predicate getPredicate(CompoundTag rootPredicate) {
+		if (PREDICATE_PER_ROOT_PREDICATE.get(rootPredicate) instanceof Predicate predicate) {
+			return predicate;
+		}
+
+		rootPredicate = rootPredicate.copy();
+		DataResult<ItemPredicate> itemPredicate;
+		if (!rootPredicate.contains(RAW_PREDICATE_ID)) {
+			itemPredicate = DataResult.error(() -> "Missing raw predicate (key '" + RAW_PREDICATE_ID + "' in '" + ROOT_PREDICATE_ID + "')");
+		} else {
+			Optional<CompoundTag> rawPredicate = rootPredicate.getCompound(RAW_PREDICATE_ID);
+			if (rawPredicate.isEmpty() || !rawPredicate.get().contains(ITEM_PREDICATE_WITHIN_PREDICATE)) {
+				itemPredicate = DataResult.error(() -> "No item predicate found");
+			} else {
+				var ops = Minecraft.getInstance().level.registryAccess().createSerializationContext(NbtOps.INSTANCE);
+				itemPredicate = ItemPredicate.CODEC.parse(ops, rawPredicate.get().get(ITEM_PREDICATE_WITHIN_PREDICATE));
+			}
+		}
+		Predicate predicate;
+		if (itemPredicate.isSuccess()) {
+			var cleanRoot = rootPredicate.copy();
+			cleanRoot.put(RAW_PREDICATE_ID, cleanRoot.getCompoundOrEmpty(RAW_PREDICATE_ID).getCompoundOrEmpty(ITEM_PREDICATE_WITHIN_PREDICATE));
+			predicate = new Predicate(itemPredicate.getOrThrow(), ContainerUtils.prettifyNbt(cleanRoot));
+		} else {
+			predicate = getFailedPredicate(itemPredicate.error().get().message());
+		}
+		PREDICATE_PER_ROOT_PREDICATE.put(rootPredicate, predicate);
+		return predicate;
+	}
+
+	private static Predicate getFailedPredicate(String message) {
 		var title = Component.literal("Could not parse item predicate!")
 			.withStyle(style -> style.withColor(ChatFormatting.RED).withItalic(false));
 		var lines = new ArrayList<Component>();
@@ -238,11 +267,7 @@ public final class ItemPredicateUtils {
 			lines.add(Component.literal(line)
 				.withStyle(style -> style.withColor(ChatFormatting.RED).withItalic(false)));
 		}
-		PRETTIFIED_PREDICATES.put(markerPredicate, lines);
-		return markerPredicate;
-	}
-
-	private static Tag toNbtAllowEmpty(ItemStack stack, HolderLookup.Provider registries) {
-		return stack.isEmpty() ? new CompoundTag() : ItemStack.CODEC.encode(stack, registries.createSerializationContext(NbtOps.INSTANCE), new CompoundTag()).getOrThrow();
+		var markerPredicate = ItemPredicate.Builder.item().withCount(MinMaxBounds.Ints.exactly(-1)).build();
+		return new Predicate(markerPredicate, lines);
 	}
 }

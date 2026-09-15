@@ -147,11 +147,8 @@ public class InventoryOverlay {
 	}
 
 	public static void addSpecialTooltipModifications(ItemStack stack, List<Component> lines) {
-		if (ItemPredicateUtils.isPredicate(stack)) {
-			lines.removeIf(text -> text.getContents() instanceof TranslatableContents contents && contents.getKey().contains("op_warning"));
-			lines.addAll(ItemPredicateUtils.getPrettyPredicate(stack));
-			return;
-		}
+		ItemPredicateUtils.modifyTooltip(stack, lines);
+
 		Minecraft client = Minecraft.getInstance();
 		if (client.screen instanceof GuiSchematicVerifier) {
 			stack = SchematicVerifierExtension.addErrorLines(stack, lines);
@@ -179,7 +176,7 @@ public class InventoryOverlay {
 
 		int color = 0;
 		boolean shouldRenderItemAsTransparent = false;
-		if (ItemPredicateUtils.getPredicate(schematicStack) instanceof ItemPredicate predicate) {
+		if (ItemPredicateUtils.getItemPredicate(schematicStack) instanceof ItemPredicate predicate) {
 			if (stack.isEmpty()) {
 				color = this.MISSING_COLOR;
 				stack = ItemPredicateUtils.getPlaceholder(schematicStack) instanceof ItemStack placeholder

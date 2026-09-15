@@ -12,7 +12,6 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
 
@@ -43,14 +42,11 @@ public class ItemPredicateCommand {
 
 					var mainHandStack = player.getMainHandItem().copy();
 
-					if (!ItemPredicateUtils.isPredicate(mainHandStack)) {
-						throw WRONG_MAIN_HAND_EXCEPTION.create();
-					}
-
 					var rawPredicate = ItemPredicateUtils.getRawPredicate(mainHandStack);
+					var stringifiedPredicate = rawPredicate == null ? "" : rawPredicate.toString();
 					var placeholder = ItemPredicateUtils.getPlaceholder(mainHandStack);
 
-					TechUtilsMod.QUEUED_END_CLIENT_TICK_TASKS.add(client -> client.setScreen(new ItemPredicateEntryScreen(context.getSource().getPlayer(), rawPredicate, placeholder)));
+					TechUtilsMod.QUEUED_END_CLIENT_TICK_TASKS.add(client -> client.setScreen(new ItemPredicateEntryScreen(context.getSource().getPlayer(), stringifiedPredicate, mainHandStack, placeholder)));
 					return 1;
 				})
 			)

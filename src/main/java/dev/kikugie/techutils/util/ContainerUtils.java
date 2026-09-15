@@ -12,7 +12,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TextComponentTagVisitor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.monster.Shulker;
 import net.minecraft.world.item.ItemStack;
@@ -76,7 +75,7 @@ public class ContainerUtils {
 	}
 
 	public static List<Component> getFormattedComponents(ItemStack stack) {
-		var ops = RegistryOps.create(NbtOps.INSTANCE, Minecraft.getInstance().level.registryAccess());
+		var ops = Minecraft.getInstance().level.registryAccess().createSerializationContext(NbtOps.INSTANCE);
 		var lines = new ArrayList<Component>();
 		for (TypedDataComponent<?> component : stack.getComponents()) {
 			component.encodeValue(ops).mapOrElse(

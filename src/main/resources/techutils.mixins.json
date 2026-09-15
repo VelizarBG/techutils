@@ -13,6 +13,7 @@
         "containerscan.GuiRendererMixin",
         "containerscan.MinecraftMixin",
         "containerscan.MultiPlayerGameModeMixin",
+        "containerscan.V3818_3Mixin",
         "mod.fapi.ClientPlayNetworkAddonMixin",
         "mod.litematica.BlockMismatchMixin",
         "mod.litematica.GuiSchematicLoad$ButtonListenerMixin",

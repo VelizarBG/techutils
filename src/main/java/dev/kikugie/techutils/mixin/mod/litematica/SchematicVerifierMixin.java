@@ -166,7 +166,7 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 			var foundStack = found.getItem(i);
 
 			Boolean predFailed = null;
-			if (ItemPredicateUtils.getPredicate(expectedStack) instanceof ItemPredicate predicate) {
+			if (ItemPredicateUtils.getItemPredicate(expectedStack) instanceof ItemPredicate predicate) {
 				predFailed = !predicate.test(foundStack);
 			}
 
@@ -232,7 +232,7 @@ public abstract class SchematicVerifierMixin<InventoryBE extends BlockEntity & C
 			var expectedStack = expectedNew.getItem(i);
 			var foundStack = foundNew.getItem(i);
 
-			if (ItemPredicateUtils.getPredicate(expectedStack) instanceof ItemPredicate predicate) {
+			if (ItemPredicateUtils.getItemPredicate(expectedStack) instanceof ItemPredicate predicate) {
 				expectedStack.set(DataComponents.CUSTOM_NAME, Component.literal("Item Predicate")
 					.withStyle(style -> style.withColor(ChatFormatting.WHITE).withItalic(false))
 				);

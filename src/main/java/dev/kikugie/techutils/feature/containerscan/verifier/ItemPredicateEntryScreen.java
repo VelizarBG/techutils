@@ -11,6 +11,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.jspecify.annotations.NullMarked;
 import org.lwjgl.glfw.GLFW;
 
@@ -19,6 +20,7 @@ public class ItemPredicateEntryScreen extends Screen {
 	private static final Component TITLE = Component.translatable("item_predicate_entry_screen.title");
 	private static final Component INPUT_TEXT = Component.translatable("item_predicate_entry_screen.input");
 	private final LocalPlayer player;
+	private ItemStack predicate = Items.COMMAND_BLOCK.getDefaultInstance();
 	private ItemStack placeholder;
 	private String initInput;
 	protected EditBox consoleCommandTextField;
@@ -40,14 +42,14 @@ public class ItemPredicateEntryScreen extends Screen {
 		this.initInput = input;
 	}
 
-	public ItemPredicateEntryScreen(LocalPlayer player, String input, ItemStack placeholder) {
+	public ItemPredicateEntryScreen(LocalPlayer player, String input, ItemStack predicate, ItemStack placeholder) {
 		this(player, input);
+		this.predicate = predicate;
 		this.placeholder = placeholder;
 	}
 
 	protected void commitAndClose() {
-		var stack = ItemPredicateUtils.createPredicateStack(consoleCommandTextField.getValue(), placeholder);
-
+		var stack = ItemPredicateUtils.makePredicateStack(consoleCommandTextField.getValue(), predicate, placeholder);
 
 		int selectedSlot = player.getInventory().getSelectedSlot();
 		player.getInventory().setItem(selectedSlot, stack);
