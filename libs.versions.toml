@@ -2,7 +2,6 @@
 minecraft                    = "26.2"
 fabric-loader                = { strictly = "0.19.5" }
 fabric-api                   = { strictly = "0.153.0+26.2" }
-fabric-asm                   = "v2.3"
 modmenu                      = "20.0.0-beta.4"
 malilib                      = { strictly = "0.29.6" }
 litematica                   = "0.28.8"
@@ -18,7 +17,6 @@ mod-publish = "2.2.+"
 [libraries]
 minecraft     = { module = "com.mojang:minecraft"                         , version.ref = "minecraft"     }
 fabric-loader = { module = "net.fabricmc:fabric-loader"                   , version.ref = "fabric-loader" }
-fabric-asm    = { module = "com.github.Chocohead:Fabric-ASM"              , version.ref = "fabric-asm"    }
 fabric-api    = { module = "net.fabricmc.fabric-api:fabric-api"           , version.ref = "fabric-api"    }
 modmenu       = { module = "com.terraformersmc:modmenu"                   , version.ref = "modmenu"       }
 malilib       = { module = "fi.dy.masa.malilib:malilib-fabric-26.2"       , version.ref = "malilib"       }
