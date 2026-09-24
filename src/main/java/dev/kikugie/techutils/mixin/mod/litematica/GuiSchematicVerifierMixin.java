@@ -1,6 +1,5 @@
 package dev.kikugie.techutils.mixin.mod.litematica;
 
-import com.chocohead.mm.api.ClassTinkerers;
 import com.google.common.collect.ObjectArrays;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -43,10 +42,7 @@ public abstract class GuiSchematicVerifierMixin {
 		try {
 			Class<?> typeClass = Class.forName("fi.dy.masa.litematica.gui.GuiSchematicVerifier$ButtonListener$Type");
 			//noinspection unchecked,rawtypes
-			SET_RESULT_MODE_WRONG_INVENTORIES = ClassTinkerers.getEnum(
-				(Class<? extends Enum>) typeClass,
-				"SET_RESULT_MODE_WRONG_INVENTORIES"
-			);
+			SET_RESULT_MODE_WRONG_INVENTORIES = Enum.valueOf((Class<Enum>) typeClass, "TECHUTILS_SET_RESULT_MODE_WRONG_INVENTORIES");
 			CREATE_BUTTON = GuiSchematicVerifier.class.getDeclaredMethod("createButton", int.class, int.class, int.class, typeClass);
 		} catch (ClassNotFoundException | NoSuchMethodException e) {
 			throw new RuntimeException(e);
@@ -133,10 +129,7 @@ public abstract class GuiSchematicVerifierMixin {
 			try {
 				Class<?> typeClass = Class.forName("fi.dy.masa.litematica.gui.GuiSchematicVerifier$ButtonListener$Type");
 				//noinspection unchecked,rawtypes
-				SET_RESULT_MODE_WRONG_INVENTORIES = ClassTinkerers.getEnum(
-					(Class<? extends Enum>) typeClass,
-					"SET_RESULT_MODE_WRONG_INVENTORIES"
-				);
+				SET_RESULT_MODE_WRONG_INVENTORIES = Enum.valueOf((Class<Enum>) typeClass, "TECHUTILS_SET_RESULT_MODE_WRONG_INVENTORIES");
 				SET_RESULT_MODE = GuiSchematicVerifier.class.getDeclaredMethod("setResultMode", SchematicVerifier.MismatchType.class);
 			} catch (ClassNotFoundException | NoSuchMethodException e) {
 				throw new RuntimeException(e);

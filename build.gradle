@@ -16,17 +16,6 @@ base {
 }
 
 repositories {
-	 exclusiveContent {
-		forRepository {
-			maven {
-				name = "JitPack"
-				url = "https://jitpack.io"
-			}
-		}
-		filter {
-			includeGroup "com.github.Chocohead"
-		}
-	}
 	exclusiveContent {
 		forRepository {
 			maven {
@@ -132,9 +121,6 @@ dependencies {
 	// To change the versions see the libs.versions.toml file
 	minecraft libs.minecraft
 	implementation libs.fabric.loader
-
-	implementation libs.fabric.asm
-	include libs.fabric.asm
 
 	implementation libs.fabric.api
 	api libs.modmenu
