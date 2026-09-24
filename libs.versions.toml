@@ -3,7 +3,6 @@ minecraft             = "1.21.11"
 fabric-loader         = { strictly = "0.19.5" }
 fabric-api            = { strictly = "0.140.2+1.21.11" }
 parchment             = "2025.12.20"
-fabric-asm            = "v2.3"
 modmenu               = "17.0.0-beta.1"
 malilib               = { strictly = "0.27.20" }
 litematica            = "0.26.16"
@@ -19,7 +18,6 @@ mod-publish = "2.2.+"
 minecraft     = { module = "com.mojang:minecraft"                           , version.ref = "minecraft"     }
 fabric-loader = { module = "net.fabricmc:fabric-loader"                     , version.ref = "fabric-loader" }
 parchment     = { module = "org.parchmentmc.data:parchment-1.21.11"         , version.ref = "parchment"     }
-fabric-asm    = { module = "com.github.Chocohead:Fabric-ASM"                , version.ref = "fabric-asm"    }
 fabric-api    = { module = "net.fabricmc.fabric-api:fabric-api"             , version.ref = "fabric-api"    }
 modmenu       = { module = "com.terraformersmc:modmenu"                     , version.ref = "modmenu"       }
 malilib       = { module = "fi.dy.masa.malilib:malilib-fabric-1.21.11"      , version.ref = "malilib"       }

@@ -1,6 +1,5 @@
 package dev.kikugie.techutils.feature.containerscan.verifier;
 
-import com.chocohead.mm.api.ClassTinkerers;
 import com.mojang.serialization.Codec;
 import fi.dy.masa.litematica.schematic.verifier.SchematicVerifier;
 import fi.dy.masa.litematica.schematic.verifier.SchematicVerifier.MismatchType;
@@ -19,7 +18,7 @@ import java.util.List;
 public interface SchematicVerifierExtension {
 	String ERROR_LINES_ID = "techutils:error_lines";
 	Codec<List<Component>> ERROR_LINES_CODEC = ComponentSerialization.CODEC.listOf();
-	MismatchType WRONG_INVENTORIES = ClassTinkerers.getEnum(MismatchType.class, "WRONG_INVENTORIES");
+	MismatchType WRONG_INVENTORIES = MismatchType.valueOf("TECHUTILS_WRONG_INVENTORIES");
 
 	/**
 	 * One must imagine Sisyphus happy

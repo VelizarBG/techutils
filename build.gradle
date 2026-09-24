@@ -16,18 +16,6 @@ base {
 }
 
 repositories {
-	 exclusiveContent {
-		forRepository {
-			maven {
-				name = "JitPack"
-				url = "https://jitpack.io"
-			}
-		}
-		filter {
-			includeGroup "com.github.sakura-ryoko"
-			includeGroup "com.github.Chocohead"
-		}
-	}
 	exclusiveContent {
 		forRepository {
 			maven {
@@ -148,9 +136,6 @@ dependencies {
 		parchment("${libs.parchment.get()}@zip")
 	}
 	modImplementation libs.fabric.loader
-
-	modImplementation libs.fabric.asm
-	include libs.fabric.asm
 
 	modImplementation libs.fabric.api
 	modApi libs.modmenu
