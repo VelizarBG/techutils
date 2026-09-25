@@ -6,8 +6,11 @@ import net.minecraft.advancements.predicates.ItemPredicate;
 import net.minecraft.advancements.predicates.MinMaxBounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.component.PatchedDataComponentMap;
+import net.minecraft.core.component.TypedDataComponent;
 import net.minecraft.core.component.predicates.DataComponentPredicate;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -35,7 +38,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class ItemPredicateUtils {
@@ -174,9 +176,9 @@ public final class ItemPredicateUtils {
 		}
 
 		var wrongComponents = new ArrayList<DataComponentType<?>>();
-		for (Map.Entry<DataComponentType<?>, Optional<?>> entry : components.exact().asPatch().entrySet()) {
-			DataComponentType<?> type = entry.getKey();
-			if (!Objects.equals(entry.getValue().orElse(null), stack.get(type))) {
+		for (TypedDataComponent<?> entry : PatchedDataComponentMap.fromPatch(DataComponentMap.EMPTY, components.exact().asPatch())) {
+			DataComponentType<?> type = entry.type();
+			if (!Objects.equals(entry.value(), stack.get(type))) {
 				wrongComponents.add(type);
 			}
 		}

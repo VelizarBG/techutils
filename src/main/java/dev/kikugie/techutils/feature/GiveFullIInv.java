@@ -98,8 +98,7 @@ public class GiveFullIInv {
 			stacks.add(ItemStackTemplate.fromNonEmptyStack(stack.copy()));
 		}
 		ItemStack bundle = Items.BUNDLE.getDefaultInstance();
-		BundleContents.Mutable builder = new BundleContents.Mutable(new BundleContents(stacks));
-		bundle.set(DataComponents.BUNDLE_CONTENTS, builder.toImmutable());
+		bundle.set(DataComponents.BUNDLE_CONTENTS, new BundleContents(stacks));
 		return bundle;
 	}
 

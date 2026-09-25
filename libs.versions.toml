@@ -1,12 +1,12 @@
 [versions]
-minecraft                    = "26.2"
+minecraft                    = "26.3"
 fabric-loader                = { strictly = "0.19.5" }
-fabric-api                   = { strictly = "0.153.0+26.2" }
-modmenu                      = "20.0.0-beta.4"
-malilib                      = { strictly = "0.29.6" }
-litematica                   = "0.28.8"
-tweakeroo                    = "0.29.5"
-worldedit                    = "7.4.5"
+fabric-api                   = { strictly = "0.161.0+26.3" }
+modmenu                      = "21.0.0"
+malilib                      = { strictly = "0.30.1" }
+litematica                   = "0.29.0"
+tweakeroo                    = "0.30.0"
+worldedit                    = "7.4.6-20260924.101912-5"
 worldeditcui-protocol-common = "4.0.3"
 worldeditcui-protocol-fabric = "4.0.3"
 
@@ -19,17 +19,17 @@ minecraft     = { module = "com.mojang:minecraft"                         , vers
 fabric-loader = { module = "net.fabricmc:fabric-loader"                   , version.ref = "fabric-loader" }
 fabric-api    = { module = "net.fabricmc.fabric-api:fabric-api"           , version.ref = "fabric-api"    }
 modmenu       = { module = "com.terraformersmc:modmenu"                   , version.ref = "modmenu"       }
-malilib       = { module = "fi.dy.masa.malilib:malilib-fabric-26.2"       , version.ref = "malilib"       }
-litematica    = { module = "fi.dy.masa.litematica:litematica-fabric-26.2" , version.ref = "litematica"    }
-tweakeroo     = { module = "fi.dy.masa.tweakeroo:tweakeroo-fabric-26.2"   , version.ref = "tweakeroo"     }
-worldedit     = { module = "com.sk89q.worldedit:worldedit-fabric-mc26.2"  , version.ref = "worldedit"     }
+malilib       = { module = "fi.dy.masa.malilib:malilib-fabric-26.3"       , version.ref = "malilib"       }
+litematica    = { module = "fi.dy.masa.litematica:litematica-fabric-26.3" , version.ref = "litematica"    }
+tweakeroo     = { module = "fi.dy.masa.tweakeroo:tweakeroo-fabric-26.3"   , version.ref = "tweakeroo"     }
+worldedit     = { module = "com.sk89q.worldedit:worldedit-fabric-mc26.3"  , version.ref = "worldedit"     }
 
 [libraries.worldeditcui-protocol-common]
-module = "org.enginehub.worldeditcui-protocol:worldeditcui-protocol-common-mc26.2"
+module = "org.enginehub.worldeditcui-protocol:worldeditcui-protocol-common-mc26.3"
 version.ref = "worldeditcui-protocol-common"
 
 [libraries.worldeditcui-protocol-fabric]
-module = "org.enginehub.worldeditcui-protocol:worldeditcui-protocol-fabric-mc26.2"
+module = "org.enginehub.worldeditcui-protocol:worldeditcui-protocol-fabric-mc26.3"
 version.ref = "worldeditcui-protocol-fabric"
 
 [plugins]

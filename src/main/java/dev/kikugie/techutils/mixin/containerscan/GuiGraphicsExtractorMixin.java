@@ -2,10 +2,10 @@ package dev.kikugie.techutils.mixin.containerscan;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.BlendFactor;
-import com.mojang.blaze3d.textures.GpuSampler;
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.renderpearl.api.pipeline.BlendFactor;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.textures.GpuSampler;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import dev.kikugie.techutils.feature.containerscan.verifier.InventoryOverlay;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -39,7 +39,7 @@ public class GuiGraphicsExtractorMixin {
 		return original;
 	}
 
-	@WrapMethod(method = "innerFill(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/client/gui/render/TextureSetup;IIIIILjava/lang/Integer;)V")
+	@WrapMethod(method = "innerFill")
 	private void fillWithTransparency(
 		RenderPipeline pipeline, TextureSetup textureSetup, int x1, int y1, int x2, int y2, int color, Integer color2, Operation<Void> original
 	) {
@@ -53,12 +53,15 @@ public class GuiGraphicsExtractorMixin {
 		original.call(pipeline, textureSetup, x1, y1, x2, y2, color, color2);
 	}
 
-	@WrapMethod(method = "innerBlit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lcom/mojang/blaze3d/textures/GpuTextureView;Lcom/mojang/blaze3d/textures/GpuSampler;IIIIFFFFI)V")
+	@WrapMethod(method = "innerBlit(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lcom/mojang/renderpearl/api/textures/GpuTextureView;Lcom/mojang/renderpearl/api/textures/GpuSampler;IIIIFFFFI)V")
 	private void quadWithTransparency(
 		RenderPipeline pipeline, GpuTextureView atlasTexture, GpuSampler sampler, int x0, int y0, int x1, int y1, float u0, float u1, float v0, float v1, int color, Operation<Void> original
 	) {
 		if (InventoryOverlay.isRenderingTransparentItem) {
-			if (pipeline.getColorTargetState().blendFunction().isPresent() && pipeline.getColorTargetState().blendFunction().get().alpha().destFactor() == BlendFactor.ZERO) {
+			var colorTargetState = pipeline.getColorTargetStates().getFirst();
+			if (colorTargetState != null && colorTargetState.blendFunction().isPresent()
+				&& colorTargetState.blendFunction().get().alpha().destFactor() == BlendFactor.ZERO
+			) {
 				color = ARGB.scaleRGB(color, InventoryOverlay.MISSING_ITEM_ALPHA);
 			} else {
 				color = ARGB.color(Math.round(ARGB.alpha(color) * InventoryOverlay.MISSING_ITEM_ALPHA), color);

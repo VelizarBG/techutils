@@ -13,7 +13,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jspecify.annotations.NullMarked;
-import org.lwjgl.glfw.GLFW;
 
 @NullMarked
 public class ItemPredicateEntryScreen extends Screen {
@@ -93,7 +92,7 @@ public class ItemPredicateEntryScreen extends Screen {
 	public boolean keyPressed(KeyEvent input) {
 		if (super.keyPressed(input)) {
 			return true;
-		} else if (input.key() != GLFW.GLFW_KEY_ENTER && input.key() != GLFW.GLFW_KEY_KP_ENTER) {
+		} else if (!input.isConfirmation()) {
 			return false;
 		} else {
 			this.commitAndClose();
