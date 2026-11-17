@@ -6,7 +6,7 @@ modmenu                      = "21.0.0"
 malilib                      = { strictly = "0.30.2" }
 litematica                   = "0.29.1"
 tweakeroo                    = "0.30.0"
-worldedit                    = "7.4.6-20260924.101912-5"
+worldedit                    = "7.4.6"
 worldeditcui-protocol-common = "4.0.3"
 worldeditcui-protocol-fabric = "4.0.3"
 
